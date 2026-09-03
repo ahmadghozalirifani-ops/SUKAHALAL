@@ -1,32 +1,37 @@
-import logoImg from '../imports/image.png'
+import React from 'react'
+import logoHd from '../imports/logo_hd.png'
+import logoTransparent from '../imports/logo_transparent.png'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   onClick?: () => void
+  showSubtitle?: boolean
 }
 
 export default function Logo({ size = 'md', className = '', onClick }: LogoProps) {
-  const imgHeights = { sm: 'h-8', md: 'h-10', lg: 'h-14' }
-  const iconSizes = { sm: 'w-7 h-7 text-xs', md: 'w-9 h-9 text-sm', lg: 'w-11 h-11 text-base' }
-  const textSizes = { sm: 'text-sm', md: 'text-lg', lg: 'text-2xl' }
+  // Sizes tailored to look crisp and well-proportioned
+  const heights = {
+    sm: 'h-8 max-w-[150px]',
+    md: 'h-10 max-w-[190px]',
+    lg: 'h-14 max-w-[260px]',
+  }
 
   return (
-    <div className={`flex items-center gap-2.5 cursor-pointer select-none ${className}`} onClick={onClick}>
+    <div 
+      className={`inline-flex items-center gap-2 cursor-pointer select-none transition-transform hover:opacity-95 ${className}`} 
+      onClick={onClick}
+      title="Halal Supply-Chain - SUKAHALAL"
+    >
       <img 
-        src={logoImg} 
-        alt="Logo" 
-        className={`${imgHeights[size]} w-auto object-contain hidden sm:block`} 
-        onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none' }}
+        src={logoHd} 
+        alt="Halal Supply-Chain Logo" 
+        className={`${heights[size]} w-auto object-contain drop-shadow-xs`}
+        onError={(e) => {
+          // fallback to logoTransparent if needed
+          (e.currentTarget as HTMLImageElement).src = logoTransparent
+        }}
       />
-      <div className="flex items-center gap-2">
-        <div className={`${iconSizes[size]} bg-green-600 rounded-xl flex items-center justify-center text-white font-black shadow-sm shrink-0 border border-green-500`}>
-          S
-        </div>
-        <span className={`font-black text-green-700 tracking-tight ${textSizes[size]}`}>
-          SUKAHALAL
-        </span>
-      </div>
     </div>
   )
 }

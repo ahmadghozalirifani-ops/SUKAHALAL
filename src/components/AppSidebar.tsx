@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import KPIWidget from './KPIWidget'
+import Logo from './Logo'
 
 interface Props {
   onNavigate: (page: string) => void
@@ -89,6 +90,11 @@ export default function AppSidebar({ onNavigate, userRole, currentPage, currentR
 
   return (
     <aside className="w-60 shrink-0 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0 overflow-y-auto">
+      {/* Brand Header */}
+      <div className="px-4 py-3.5 border-b border-gray-100 bg-white flex items-center justify-between">
+        <Logo size="sm" onClick={() => onNavigate('landing')} />
+      </div>
+
       {/* Role Banner */}
       <div className={`bg-gradient-to-r ${roleGradient[userRole] || 'from-green-600 to-teal-500'} p-4 text-white`}>
         <div className="text-xs font-semibold opacity-80 mb-1">{t('common.dashboard', 'Dashboard')}</div>
