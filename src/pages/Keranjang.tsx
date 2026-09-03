@@ -1,250 +1,218 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import TraceabilityModal from '../components/TraceabilityModal';
 
-interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
+
+interface PageProps {
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-interface CartItem {
-  id: number
-  name: string
-  supplier: string
-  price: number
-  qty: number
-  emoji: string
-  halal: boolean
-}
+export default function Keranjang({ onNavigate, userRole, onSetRole }: PageProps) {
+  const { t } = useTranslation();
+  const [step, setStep] = useState(1); // 1: Cart & Shipping, 2: Payment
+  const [showTrace, setShowTrace] = useState(false);
 
-const initialCart: CartItem[] = [
-  { id: 1, name: 'Mi Instan Kari Ayam Halal', supplier: 'CV Halal Mart', price: 25000, qty: 3, emoji: '🍜', halal: true },
-  { id: 2, name: 'Bumbu Dapur Rendang 200g', supplier: 'PT Bumbu Nusantara', price: 45500, qty: 2, emoji: '🫙', halal: true },
-  { id: 3, name: 'Beras Premium Pandan Wangi 5kg', supplier: 'UD Jaya Beras', price: 85000, qty: 1, emoji: '🌾', halal: true },
-]
+  const cartItems = [
+    { id: 1, name: 'Daging Sapi Segar', seller: 'Segar Farm', price: 120000, qty: 2, image: '🥩' },
+    { id: 2, name: 'Bumbu Rempah Instan', seller: 'CV Makmur Jaya', price: 25000, qty: 5, image: '🌿' },
+    { id: 3, name: 'Ayam Potong Organik', seller: 'Segar Farm', price: 45000, qty: 1, image: '🍗' },
+  ];
 
-const couriers = [
-  { name: 'JNE Regular', est: '3-5 hari', cost: 15000 },
-  { name: 'J&T Express', est: '2-4 hari', cost: 18000 },
-  { name: 'SiCepat Halu', est: '1-3 hari', cost: 22000 },
-  { name: 'AnterAja', est: '2-4 hari', cost: 16000 },
-  { name: 'Pos Indonesia', est: '5-7 hari', cost: 12000 },
-]
+  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const shipping = 25000;
+  const total = subtotal + shipping;
 
-const paymentMethods = [
-  { id: 'transfer', label: 'Transfer Bank Syariah', desc: 'BSI, Bank Muamalat, BNI Syariah', icon: '🏦' },
-  { id: 'ewallet', label: 'E-Wallet', desc: 'OVO, GoPay, DANA, ShopeePay', icon: '📱' },
-  { id: 'cod', label: 'Bayar di Tempat (COD)', desc: 'Bayar saat barang diterima', icon: '💵' },
-  { id: 'qris', label: 'QRIS', desc: 'Scan QR di semua bank & e-wallet', icon: '📷' },
-]
+  const couriers = [
+    { name: 'JNE Reguler', price: 25000, days: '2-3 hari', halalLogistics: false, logo: '🚚' },
+    { name: 'Halal Logistic Pos', price: 30000, days: '2-3 hari', halalLogistics: true, logo: '📦' },
+    { name: 'SiCepat', price: 24000, days: '1-2 hari', halalLogistics: false, logo: '⚡' },
+  ];
 
-export default function Keranjang({ onNavigate }: Props) {
-  const [cart, setCart] = useState(initialCart)
-  const [selectedCourier, setSelectedCourier] = useState(0)
-  const [selectedPayment, setSelectedPayment] = useState('transfer')
-  const [address, setAddress] = useState('Jl. Kebon Jeruk No. 12, Jakarta Barat, DKI Jakarta, 11530')
-  const [checkingOut, setCheckingOut] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
-  const [step, setStep] = useState<'cart' | 'checkout'>('cart')
-
-  function updateQty(id: number, delta: number) {
-    setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item))
-  }
-
-  function removeItem(id: number) {
-    setCart(prev => prev.filter(item => item.id !== id))
-  }
-
-  const subtotal = cart.reduce((a, c) => a + c.price * c.qty, 0)
-  const shipping = couriers[selectedCourier].cost
-  const total = subtotal + shipping
-
-  function handleCheckout() {
-    setCheckingOut(true)
-    setTimeout(() => {
-      setCheckingOut(false)
-      setOrderSuccess(true)
-      setTimeout(() => onNavigate('pesanan'), 2000)
-    }, 1500)
-  }
-
-  if (cart.length === 0 && !orderSuccess) {
-    return (
-      <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif] flex flex-col items-center justify-center">
-        <div className="text-6xl mb-4">🛒</div>
-        <h2 className="text-xl font-extrabold text-gray-900 mb-2">Keranjang Kosong</h2>
-        <p className="text-sm text-gray-500 mb-6">Belum ada produk di keranjang Anda</p>
-        <button onClick={() => onNavigate('product-catalog')} className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
-          Jelajahi Katalog →
-        </button>
-      </div>
-    )
-  }
+  const payments = [
+    { group: 'Transfer Bank Syariah', items: [{ name: 'BSI (Bank Syariah Indonesia)', icon: '🏦' }, { name: 'Bank Muamalat', icon: '🏦' }] },
+    { group: 'E-Wallet (Syariah)', items: [{ name: 'LinkAja Syariah', icon: '📱' }, { name: 'GoPay', icon: '📱' }] },
+    { group: 'Lainnya', items: [{ name: 'QRIS', icon: '📷' }, { name: 'COD (Bayar di Tempat)', icon: '💵' }] }
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-            <span className="font-extrabold text-green-700">SUKAHALAL</span>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {userRole !== 'guest' && <AppSidebar onNavigate={onNavigate} userRole={userRole} />}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">{t('Keranjang Belanja')}</h1>
+            <p className="text-sm text-gray-500">Dashboard &gt; {t('Keranjang')}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => onNavigate('product-catalog')} className="text-sm text-gray-500 hover:text-gray-700">← Lanjut Belanja</button>
-          </div>
-        </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Steps */}
-        <div className="flex items-center gap-4 mb-8">
-          {['Keranjang', 'Checkout'].map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                (i === 0 && step === 'cart') || (i === 1 && step === 'checkout') ? 'bg-green-600 text-white' : step === 'checkout' && i === 0 ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-500'
-              }`}>{i === 0 && step === 'checkout' ? '✓' : i + 1}</div>
-              <span className={`text-sm font-medium ${(i === 0 && step === 'cart') || (i === 1 && step === 'checkout') ? 'text-gray-900' : 'text-gray-400'}`}>{s}</span>
-              {i < 1 && <div className="w-12 h-0.5 bg-gray-200 mx-2" />}
-            </div>
-          ))}
-        </div>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Column: Cart Items & Forms */}
+            <div className="flex-1 space-y-6">
+              
+              {/* Items List */}
+              {step === 1 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Barang Belanjaan')}</h2>
+                  {cartItems.map((item, idx) => (
+                    <div key={item.id} className={`flex items-center gap-4 py-4 ${idx !== cartItems.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-3xl">
+                        {item.image}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between">
+                          <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                          <p className="font-bold text-gray-800">Rp {item.price.toLocaleString('id-ID')}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">Penjual: {item.seller}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-3">
+                            <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                              ✅ Halal
+                            </span>
+                            <button onClick={() => setShowTrace(true)} className="text-xs text-blue-600 flex items-center gap-1 hover:underline">
+                              🔍 Trace
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center border border-gray-200 rounded-lg">
+                              <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">-</button>
+                              <span className="px-3 text-sm">{item.qty}</span>
+                              <button className="px-2 py-1 text-gray-600 hover:bg-gray-100">+</button>
+                            </div>
+                            <button className="text-red-500 text-sm hover:text-red-700">🗑️</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-        {orderSuccess ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-extrabold text-green-700 mb-2">Pesanan Berhasil!</h2>
-            <p className="text-sm text-gray-500 mb-4">Pesanan Anda sedang diproses. Mengalihkan ke halaman pesanan...</p>
-            <div className="inline-block w-6 h-6 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : step === 'cart' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <h1 className="text-xl font-extrabold text-gray-900 mb-4">Keranjang Belanja ({cart.length} item)</h1>
-              <div className="space-y-3">
-                {cart.map(item => (
-                  <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4">
-                    <div className="w-16 h-16 bg-amber-50 rounded-xl flex items-center justify-center text-3xl shrink-0">{item.emoji}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-800 text-sm truncate">{item.name}</div>
-                      <div className="text-xs text-gray-500">{item.supplier}</div>
-                      {item.halal && <span className="inline-flex items-center gap-1 text-green-600 text-[10px] font-bold mt-0.5">✅ Halal Tayiban</span>}
+              {/* Shipping & Courier */}
+              {step === 1 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Pengiriman')}</h2>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('Alamat Pengiriman')}</label>
+                    <div className="p-3 border border-gray-200 rounded-lg text-sm text-gray-700">
+                      <p className="font-semibold">Budi Santoso</p>
+                      <p>Jl. Sudirman No. 45, Jakarta Pusat, DKI Jakarta 10220</p>
+                      <button className="text-green-600 text-xs mt-2 font-medium hover:underline">Ubah Alamat</button>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">−</button>
-                      <span className="w-8 text-center text-sm font-semibold">{item.qty}</span>
-                      <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50">+</button>
-                    </div>
-                    <div className="text-right shrink-0 w-28">
-                      <div className="font-bold text-green-700 text-sm">Rp {(item.price * item.qty).toLocaleString('id-ID')}</div>
-                      <div className="text-[10px] text-gray-400">@Rp {item.price.toLocaleString('id-ID')}</div>
-                    </div>
-                    <button onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-600 text-lg shrink-0">✕</button>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-24">
-                <h3 className="font-bold text-gray-900 mb-4 text-sm">Ringkasan Belanja</h3>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal ({cart.reduce((a, c) => a + c.qty, 0)} item)</span><span className="font-medium">Rp {subtotal.toLocaleString('id-ID')}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Ongkos Kirim</span><span className="font-medium">Rp {shipping.toLocaleString('id-ID')}</span></div>
-                  <div className="h-px bg-gray-100 my-2" />
-                  <div className="flex justify-between"><span className="font-bold text-gray-900">Total</span><span className="font-extrabold text-green-700 text-lg">Rp {total.toLocaleString('id-ID')}</span></div>
-                </div>
-                <button onClick={() => setStep('checkout')} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm transition-colors">
-                  Lanjut ke Checkout →
-                </button>
-                <button onClick={() => onNavigate('product-catalog')} className="w-full text-sm text-gray-500 hover:text-gray-700 mt-3 py-2">
-                  ← Lanjut Belanja
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-5">
-              <h1 className="text-xl font-extrabold text-gray-900">Checkout</h1>
-
-              {/* Alamat */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">📍 Alamat Pengiriman</h3>
-                <textarea value={address} onChange={e => setAddress(e.target.value)} rows={2}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none" />
-              </div>
-
-              {/* Kurir */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">🚛 Pilih Kurir</h3>
-                <div className="space-y-2">
-                  {couriers.map((c, i) => (
-                    <button key={i} onClick={() => setSelectedCourier(i)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-colors text-left ${
-                        selectedCourier === i ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}>
-                      <div>
-                        <div className="text-sm font-medium text-gray-800">{c.name}</div>
-                        <div className="text-xs text-gray-500">Estimasi: {c.est}</div>
-                      </div>
-                      <span className="font-bold text-sm text-gray-800">Rp {c.cost.toLocaleString('id-ID')}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pembayaran */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <h3 className="font-bold text-gray-900 mb-3 text-sm flex items-center gap-2">💳 Metode Pembayaran (Syariah)</h3>
-                <div className="space-y-2">
-                  {paymentMethods.map(m => (
-                    <button key={m.id} onClick={() => setSelectedPayment(m.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-colors text-left ${
-                        selectedPayment === m.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}>
-                      <span className="text-2xl">{m.icon}</span>
-                      <div>
-                        <div className="text-sm font-medium text-gray-800">{m.label}</div>
-                        <div className="text-xs text-gray-500">{m.desc}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-24">
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">Ringkasan Pesanan</h3>
-                <div className="space-y-2 mb-3">
-                  {cart.map(item => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600 truncate mr-2">{item.name} x{item.qty}</span>
-                      <span className="font-medium shrink-0">Rp {(item.price * item.qty).toLocaleString('id-ID')}</span>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('Pilih Kurir')}</label>
+                    <div className="space-y-3">
+                      {couriers.map((c, i) => (
+                        <label key={i} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            <input type="radio" name="courier" className="text-green-600 focus:ring-green-500" defaultChecked={i===1} />
+                            <div className="text-2xl">{c.logo}</div>
+                            <div>
+                              <p className="font-semibold text-sm flex items-center gap-2">
+                                {c.name}
+                                {c.halalLogistics && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Halal Logistics</span>}
+                              </p>
+                              <p className="text-xs text-gray-500">Estimasi: {c.days}</p>
+                            </div>
+                          </div>
+                          <p className="font-medium text-sm">Rp {c.price.toLocaleString('id-ID')}</p>
+                        </label>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
-                <div className="h-px bg-gray-100 my-3" />
-                <div className="space-y-1 mb-3">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>Rp {subtotal.toLocaleString('id-ID')}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Ongkir ({couriers[selectedCourier].name})</span><span>Rp {shipping.toLocaleString('id-ID')}</span></div>
+              )}
+
+              {/* Payment Selection */}
+              {step === 2 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                  <button onClick={() => setStep(1)} className="text-sm text-gray-500 hover:text-gray-800 mb-4 flex items-center gap-1">
+                    ← Kembali
+                  </button>
+                  <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Pilih Metode Pembayaran')}</h2>
+                  
+                  <div className="space-y-6">
+                    {payments.map((pg, i) => (
+                      <div key={i}>
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">{pg.group}</h3>
+                        <div className="space-y-2">
+                          {pg.items.map((method, j) => (
+                            <label key={j} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                              <input type="radio" name="payment" className="text-green-600 focus:ring-green-500" />
+                              <span className="ml-3 text-xl">{method.icon}</span>
+                              <span className="ml-3 text-sm font-medium">{method.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="h-px bg-gray-100 my-3" />
-                <div className="flex justify-between mb-4"><span className="font-bold">Total</span><span className="font-extrabold text-green-700 text-lg">Rp {total.toLocaleString('id-ID')}</span></div>
-                <button onClick={handleCheckout} disabled={checkingOut}
-                  className={`w-full font-bold py-3.5 rounded-xl text-sm transition-colors ${checkingOut ? 'bg-gray-300 text-gray-500' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                  {checkingOut ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Memproses...
-                    </span>
-                  ) : 'Bayar Sekarang'}
-                </button>
-                <button onClick={() => setStep('cart')} className="w-full text-sm text-gray-500 hover:text-gray-700 mt-3 py-2">← Kembali ke Keranjang</button>
+              )}
+
+            </div>
+
+            {/* Right Column: Order Summary */}
+            <div className="w-full lg:w-96">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Ringkasan Belanja')}</h2>
+                
+                <div className="space-y-3 text-sm text-gray-600 mb-4 border-b border-gray-100 pb-4">
+                  <div className="flex justify-between">
+                    <span>Total Harga ({cartItems.length} barang)</span>
+                    <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Ongkos Kirim</span>
+                    <span>Rp {shipping.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between text-green-600">
+                    <span>Diskon</span>
+                    <span>- Rp 0</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-between font-bold text-lg text-gray-800 mb-6">
+                  <span>Total Tagihan</span>
+                  <span>Rp {total.toLocaleString('id-ID')}</span>
+                </div>
+                
+                {step === 1 ? (
+                  <button 
+                    onClick={() => setStep(2)}
+                    className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    {t('Lanjut ke Pembayaran')}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => { alert('Pesanan Berhasil Dibuat!'); onNavigate('Dashboard'); }}
+                    className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    {t('Bayar Sekarang')}
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </main>
+
+      {showTrace && (
+        <TraceabilityModal 
+          productName="Daging Sapi Segar"
+          history={[]}
+          onClose={() => setShowTrace(false)} 
+        />
+      )}
     </div>
-  )
+  );
 }

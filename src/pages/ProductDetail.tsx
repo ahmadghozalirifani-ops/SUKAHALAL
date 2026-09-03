@@ -1,181 +1,296 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import TrafficLightStatus from '../components/TrafficLightStatus';
+import TraceabilityModal from '../components/TraceabilityModal';
+
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
 interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-const sideNav = [
-  { id: 'dashboard', label: 'Dashboard', icon: '⊞' },
-  { id: 'product-catalog', label: 'Products', icon: '📦' },
-  { id: 'supplier-catalog', label: 'Suppliers', icon: '🏢' },
-  { id: 'laporan', label: 'Analytics', icon: '📊' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
-  { id: 'tutorial', label: 'Support', icon: '❓' },
-]
+export default function ProductDetail({ onNavigate, userRole, onSetRole }: Props) {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'spesifikasi' | 'verifikasi' | 'ulasan'>('spesifikasi');
+  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
 
-const specs = [
-  { key: 'Bahan', value: 'Tepung Gandum Utuh Organik, Air, Garam, Kunyit Alami' },
-  { key: 'Asal', value: 'Jawa Tengah, Indonesia (Organik Certified)' },
-  { key: 'Proses', value: 'Penggilingan Batu, Dikeringkan Udara Natural, No MSG' },
-]
+  const primaryColor = 
+    userRole === 'seller' ? 'bg-green-600' :
+    userRole === 'distributor' ? 'bg-blue-600' :
+    userRole === 'customer' ? 'bg-violet-600' : 'bg-green-600';
 
-const timeline = [
-  { step: 'Pengajuan', sub: 'Submitted', date: '12 Oct 2023' },
-  { step: 'AI-Analysis', sub: 'AI Verified', date: '14 Oct 2023' },
-  { step: 'Review BPJPH', sub: 'Approved BPJPH', date: '19 Oct 2023' },
-  { step: 'Approved', sub: 'Certified', date: '20 Oct 2023' },
-]
-
-const galleryEmojis = ['📦', '📋', '🍜']
-
-export default function ProductDetail({ onNavigate }: Props) {
-  const [activeNav, setActiveNav] = useState('product-catalog')
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [inCart, setInCart] = useState(false)
-  const [downloaded, setDownloaded] = useState(false)
-
-  function handleNav(id: string) {
-    setActiveNav(id)
-    if (id !== 'product-catalog') onNavigate(id)
-  }
+  const textColor = 
+    userRole === 'seller' ? 'text-green-600' :
+    userRole === 'distributor' ? 'text-blue-600' :
+    userRole === 'customer' ? 'text-violet-600' : 'text-green-600';
 
   return (
-    <div className="flex h-screen bg-gray-50 font-['Inter',sans-serif] overflow-hidden">
-      <aside className="w-52 bg-white border-r border-gray-100 flex flex-col shrink-0">
-        <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-100 cursor-pointer" onClick={() => onNavigate('landing')}>
-          <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-white font-extrabold text-xs">S</div>
-          <span className="text-gray-800 font-extrabold text-sm">SUKAHALAL</span>
-        </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {sideNav.map(item => (
-            <button key={item.id} onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                activeNav === item.id ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="text-base w-5 text-center">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto">
-        <div className="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <button onClick={() => onNavigate('product-catalog')} className="hover:text-gray-700">Product Detail</button>
-            <span>›</span>
-            <span className="text-gray-900 font-medium">Mie Organik Halal Premium</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => { navigator.clipboard?.writeText('https://sukahalal.id/product/mie-organik'); alert('Link berhasil disalin!') }} className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">
-              🔗 Share
-            </button>
-            <button onClick={() => onNavigate('settings')} className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">⚙</button>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <div className="bg-amber-50 rounded-2xl h-64 flex items-center justify-center mb-3 border border-amber-100">
-                <span className="text-7xl">{galleryEmojis[selectedImage]}</span>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <AppHeader 
+          title="Detail Produk"
+          breadcrumb="Dashboard > Katalog Produk > Detail Produk"
+          userRole={userRole} 
+          onSetRole={onSetRole} 
+        />
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Hero Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+              <div className="md:w-1/3 bg-slate-100 h-64 md:h-auto flex items-center justify-center text-9xl relative">
+                🍛
+                <div className="absolute top-4 left-4">
+                  <div className="bg-white/90 backdrop-blur text-green-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 border border-green-200 shadow-sm">
+                    ✨ {t('Halal Tayyiban')}
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                {galleryEmojis.map((em, i) => (
-                  <button key={i} onClick={() => setSelectedImage(i)}
-                    className={`w-20 h-16 rounded-xl flex items-center justify-center text-2xl border-2 transition-colors ${selectedImage === i ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50 hover:border-gray-300'}`}
-                  >{em}</button>
+              
+              <div className="p-8 md:w-2/3 flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <h1 className="text-3xl font-bold text-slate-800">Rendang Sapi Premium</h1>
+                  <button 
+                    onClick={() => setIsTraceModalOpen(true)}
+                    className="p-3 bg-slate-50 text-slate-600 rounded-full hover:bg-slate-100 transition-colors shadow-sm border border-slate-200"
+                    title={t('Traceability QR')}
+                  >
+                    🔍 QR
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-slate-500 mb-6">
+                  <span className="flex items-center gap-1">🏪 Bunda Halal Foods</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 text-amber-500 font-medium">★ 4.8 (124 {t('Ulasan')})</span>
+                </div>
+                
+                <div className="text-3xl font-bold text-slate-900 mb-6">
+                  Rp 75.000
+                </div>
+                
+                <p className="text-slate-600 mb-8 leading-relaxed">
+                  {t('Rendang daging sapi pilihan yang dimasak perlahan dengan bumbu rempah asli nusantara. Diproses dengan standar kehalalan dan kebersihan tinggi untuk menjamin kualitas tayyiban.')}
+                </p>
+                
+                <div className="mt-auto flex gap-4">
+                  {(userRole === 'seller' || userRole === 'distributor') ? (
+                    <button className={`px-8 py-3 ${primaryColor} text-white rounded-xl font-bold hover:opacity-90 transition-opacity shadow-sm`}>
+                      {t('Edit Produk')}
+                    </button>
+                  ) : (
+                    <>
+                      <button className={`flex-1 md:flex-none px-8 py-3 ${primaryColor} text-white rounded-xl font-bold hover:opacity-90 transition-opacity shadow-sm`}>
+                        {t('Beli Sekarang')}
+                      </button>
+                      <button className="flex-1 md:flex-none px-8 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">
+                        {t('Tambah ke Keranjang')}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="flex border-b border-slate-200">
+                {(['spesifikasi', 'verifikasi', 'ulasan'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 py-4 px-6 text-sm font-bold uppercase tracking-wider transition-colors ${
+                      activeTab === tab 
+                        ? `border-b-2 border-slate-900 text-slate-900 bg-slate-50` 
+                        : `text-slate-500 hover:bg-slate-50 hover:text-slate-700`
+                    }`}
+                  >
+                    {t(tab)}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="p-8">
+                {activeTab === 'spesifikasi' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">{t('Informasi Detail')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Komposisi')}</span>
+                          <span className="font-medium text-slate-800 text-right w-1/2">Daging Sapi (80%), Santan, Cabai, Bawang Merah, Bawang Putih, Jahe, Lengkuas, Serai</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Asal Bahan')}</span>
+                          <span className="font-medium text-slate-800">Lokal (RPH Halal Bersertifikat)</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Masa Simpan')}</span>
+                          <span className="font-medium text-slate-800">6 Bulan (Suhu Ruang)</span>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Berat Bersih')}</span>
+                          <span className="font-medium text-slate-800">250 gram</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Sertifikasi')}</span>
+                          <span className="font-medium text-green-600 flex items-center gap-1">BPJPH Halal <TrafficLightStatus status="green" size="sm"/></span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-100 pb-2">
+                          <span className="text-slate-500">{t('Proses Produksi')}</span>
+                          <span className="font-medium text-slate-800">Pemanasan Suhu Tinggi (Sterilisasi)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'verifikasi' && (
+                  <div className="space-y-8">
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                      <div className="flex-1 space-y-6">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">{t('Status Verifikasi Halal')}</h3>
+                        
+                        <div className="relative pl-8 space-y-8 before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                          <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-green-500 text-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                              ✓
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                              <div className="font-bold text-slate-800">{t('Pengajuan')}</div>
+                              <div className="text-sm text-slate-500">12 Aug 2023</div>
+                            </div>
+                          </div>
+                          
+                          <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-green-500 text-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                              ✓
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                              <div className="font-bold text-slate-800">{t('Analisis AI')}</div>
+                              <div className="text-sm text-slate-500">12 Aug 2023 - Score: 98%</div>
+                            </div>
+                          </div>
+                          
+                          <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-green-500 text-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                              ✓
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                              <div className="font-bold text-slate-800">{t('Review BPJPH')}</div>
+                              <div className="text-sm text-slate-500">15 Aug 2023</div>
+                            </div>
+                          </div>
+                          
+                          <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-green-500 text-slate-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                              ★
+                            </div>
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-green-50 p-4 rounded-xl border border-green-200 shadow-sm">
+                              <div className="font-bold text-green-800">{t('Sertifikat Terbit')}</div>
+                              <div className="text-sm text-green-600">20 Aug 2023</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="md:w-72 bg-slate-50 p-6 rounded-2xl border border-slate-200 shrink-0">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl shadow-sm border border-slate-100">
+                            📜
+                          </div>
+                          <div>
+                            <div className="text-sm text-slate-500 font-medium mb-1">{t('Nomor Sertifikat')}</div>
+                            <div className="font-mono font-bold text-slate-800">ID3211000012345</div>
+                          </div>
+                          <div className="w-full space-y-2 pt-4 border-t border-slate-200">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-slate-500">{t('Berlaku Hingga')}</span>
+                              <span className="font-bold text-slate-700">20 Aug 2027</span>
+                            </div>
+                            <div className="flex justify-between text-sm items-center">
+                              <span className="text-slate-500">{t('Status')}</span>
+                              <TrafficLightStatus status="green" size="sm" />
+                            </div>
+                          </div>
+                          <button className="w-full mt-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
+                            ⬇️ {t('Unduh Sertifikat')}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'ulasan' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-6 mb-8">
+                      <div className="text-5xl font-bold text-slate-800">4.8</div>
+                      <div>
+                        <div className="flex text-amber-400 text-xl mb-1">★★★★★</div>
+                        <div className="text-sm text-slate-500">124 {t('Ulasan Pembeli')}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="pb-6 border-b border-slate-100 last:border-0">
+                          <div className="flex justify-between mb-2">
+                            <div className="font-bold text-slate-800">Ahmad G.</div>
+                            <div className="text-sm text-slate-400">2 hari yang lalu</div>
+                          </div>
+                          <div className="flex text-amber-400 text-sm mb-3">★★★★★</div>
+                          <p className="text-slate-600 mb-3">Rasa rendangnya autentik, dagingnya empuk. Sangat direkomendasikan dan yang paling penting terjamin kehalalannya.</p>
+                          <div className="flex items-center gap-4">
+                            <button className="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                              👍 Membantu (12)
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="text-center pt-4">
+                      <button className="text-green-600 font-medium hover:underline">
+                        {t('Lihat Semua Ulasan')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Related Products Placeholder */}
+            <div className="pt-8 pb-12">
+              <h3 className="text-xl font-bold text-slate-800 mb-6">{t('Produk Serupa')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center text-center cursor-pointer hover:shadow-md transition-shadow" onClick={() => onNavigate('ProductDetail')}>
+                    <div className="text-4xl mb-3">🍘</div>
+                    <div className="font-bold text-slate-800 text-sm mb-1">Snack Halal {i}</div>
+                    <div className="text-green-600 font-bold text-sm">Rp 15.000</div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <h1 className="text-2xl font-extrabold text-gray-900 mb-1">Mie Organik Halal Premium</h1>
-              <div className="text-sm text-gray-500 mb-3">
-                Supplier: <button onClick={() => onNavigate('supplier-profile')} className="text-green-600 hover:underline font-medium">PT Berkah Foods</button>
-              </div>
-
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-3xl font-extrabold text-green-600">Rp 35.000</span>
-                <div className="bg-green-700 text-white rounded-xl px-3 py-1.5 text-center">
-                  <div className="text-xs font-bold leading-tight">HALAL</div>
-                  <div className="text-[9px] leading-tight">TAYYIBAN</div>
-                  <div className="text-[8px] opacity-80">HALAL CERTIFIED</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-amber-400 text-sm">★★★★½</div>
-                  <div className="font-bold text-gray-900">4.8</div>
-                  <div className="text-xs text-gray-400">128 Reviews</div>
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <div className="font-bold text-gray-900 mb-2 text-sm">Specification</div>
-                <div className="border border-gray-200 rounded-xl overflow-hidden">
-                  {specs.map((s, i) => (
-                    <div key={s.key} className={`flex text-sm ${i > 0 ? 'border-t border-gray-100' : ''}`}>
-                      <div className="w-24 shrink-0 bg-gray-50 px-3 py-2.5 font-medium text-gray-700">{s.key}</div>
-                      <div className="flex-1 px-3 py-2.5 text-gray-600">{s.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <div className="font-bold text-gray-900 mb-3 text-sm">Verification Timeline</div>
-                <div className="flex items-start gap-0 relative">
-                  {timeline.map((t, i) => (
-                    <div key={i} className="flex-1 relative">
-                      <div className="flex flex-col items-center">
-                        <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold z-10">✓</div>
-                        {i < timeline.length - 1 && <div className="absolute top-3.5 left-1/2 w-full h-0.5 bg-green-400" />}
-                        <div className="mt-2 text-center">
-                          <div className="text-xs font-bold text-gray-800">{t.step}</div>
-                          <div className="text-[10px] text-gray-500">{t.sub}</div>
-                          <div className="text-[10px] text-gray-400">{t.date}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="ml-3 flex flex-col gap-2">
-                    <div className="text-xs text-gray-400 mb-1">Share</div>
-                    {['📱', '📸', '👥'].map((icon, i) => (
-                      <div key={i} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm cursor-pointer hover:bg-gray-200">{icon}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setDownloaded(true)}
-                  className={`flex-1 font-bold py-3 rounded-xl text-sm transition-colors border-2 ${downloaded ? 'border-gray-300 text-gray-400 bg-gray-50' : 'border-green-600 text-green-600 hover:bg-green-50'}`}
-                >
-                  {downloaded ? '✓ Downloaded' : 'Download Sertifikat Halal (PDF)'}
-                </button>
-                <button
-                  onClick={() => setInCart(true)}
-                  className={`flex-1 font-bold py-3 rounded-xl text-sm transition-colors uppercase tracking-wide ${inCart ? 'bg-gray-200 text-gray-600' : 'bg-green-700 hover:bg-green-800 text-white'}`}
-                >
-                  {inCart ? '✓ Di Keranjang' : 'Tambah ke Keranjang'}
-                </button>
-              </div>
-
-              {inCart && (
-                <div className="mt-3 flex gap-2">
-                  <button onClick={() => onNavigate('cart')} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
-                    🛒 Lihat Keranjang
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </main>
+
+      <TraceabilityModal 
+        isOpen={isTraceModalOpen} 
+        onClose={() => setIsTraceModalOpen(false)} 
+        productId={'1'} 
+      />
     </div>
-  )
+  );
 }

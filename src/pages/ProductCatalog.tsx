@@ -1,183 +1,232 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import TrafficLightStatus from '../components/TrafficLightStatus';
+import TraceabilityModal from '../components/TraceabilityModal';
+
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
 interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-const sideNav = [
-  { id: 'dashboard', label: 'Dashboard', icon: '⊞' },
-  { id: 'product-catalog', label: 'Katalog Produk', icon: '📦' },
-  { id: 'pesanan', label: 'Pesanan', icon: '🛒' },
-  { id: 'supplier-catalog', label: 'Pemasok', icon: '🏢' },
-  { id: 'verification', label: 'Sertifikasi Halal', icon: '🛡️' },
-  { id: 'settings', label: 'Pengaturan', icon: '⚙️' },
-]
+const MOCK_PRODUCTS = [
+  { id: '1', name: 'Rendang Sapi Premium', category: 'Makanan', price: 75000, supplier: 'Bunda Halal Foods', rating: 4.8, halalCert: true, stockStatus: 'green', emoji: '🍛', stock: 120 },
+  { id: '2', name: 'Sirup Marjan Melon', category: 'Minuman', price: 22000, supplier: 'PT Berkah Minuman', rating: 4.5, halalCert: true, stockStatus: 'green', emoji: '🥤', stock: 500 },
+  { id: '3', name: 'Bumbu Nasi Goreng', category: 'Bumbu', price: 5000, supplier: 'Rasa Nusantara', rating: 4.9, halalCert: true, stockStatus: 'green', emoji: '🧂', stock: 300 },
+  { id: '4', name: 'Krim Wajah Alami', category: 'Kosmetik', price: 150000, supplier: 'Halal Beauty', rating: 4.7, halalCert: true, stockStatus: 'yellow', emoji: '🧴', stock: 50 },
+  { id: '5', name: 'Vitamin C 1000mg', category: 'Suplemen', price: 45000, supplier: 'Sehat Sentosa', rating: 4.6, halalCert: true, stockStatus: 'green', emoji: '💊', stock: 200 },
+  { id: '6', name: 'Keripik Tempe Pedas', category: 'Makanan', price: 15000, supplier: 'Bunda Halal Foods', rating: 4.3, halalCert: false, stockStatus: 'red', emoji: '🍘', stock: 0 },
+  { id: '7', name: 'Kopi Arabica Gayo', category: 'Minuman', price: 85000, supplier: 'Kopi Barokah', rating: 4.9, halalCert: true, stockStatus: 'green', emoji: '☕', stock: 80 },
+  { id: '8', name: 'Kecap Manis Pedas', category: 'Bumbu', price: 12000, supplier: 'Rasa Nusantara', rating: 4.4, halalCert: true, stockStatus: 'yellow', emoji: '🍯', stock: 20 },
+  { id: '9', name: 'Sabun Mandi Susu', category: 'Kosmetik', price: 25000, supplier: 'Halal Beauty', rating: 4.5, halalCert: true, stockStatus: 'green', emoji: '🧼', stock: 150 },
+  { id: '10', name: 'Madu Hutan Asli', category: 'Suplemen', price: 120000, supplier: 'Sehat Sentosa', rating: 4.8, halalCert: true, stockStatus: 'green', emoji: '🍯', stock: 45 },
+  { id: '11', name: 'Mie Instan Goreng', category: 'Makanan', price: 3500, supplier: 'PT Berkah Minuman', rating: 4.6, halalCert: true, stockStatus: 'green', emoji: '🍜', stock: 1000 },
+  { id: '12', name: 'Teh Hijau Celup', category: 'Minuman', price: 18000, supplier: 'Kopi Barokah', rating: 4.2, halalCert: true, stockStatus: 'yellow', emoji: '🍵', stock: 35 },
+];
 
-const products = [
-  { id: 1, name: 'Mi Instan Kari Ayam Halal', supplier: 'CV Halal Mart', price: 'Rp 25.000', badge: 'Halal Tayiban', rating: 4.8, emoji: '🍜', bg: 'bg-orange-50' },
-  { id: 2, name: 'Bumbu Dapur Rendang 200g', supplier: 'PT Bumbu Nusantara', price: 'Rp 45.500', badge: 'Halal Tayiban', rating: 4.5, emoji: '🫙', bg: 'bg-amber-50' },
-  { id: 3, name: 'Sambal Terasi Super 150ml', supplier: 'CV Sambalindo', price: 'Rp 32.000', badge: 'Halal Tayiban', rating: 4.5, emoji: '🌶️', bg: 'bg-red-50' },
-  { id: 4, name: 'Beras Premium Pandan Wangi 5kg', supplier: 'UD Jaya Beras', price: 'Rp 85.000', badge: 'Halal Tayiban', rating: 4.8, emoji: '🌾', bg: 'bg-green-50' },
-  { id: 5, name: 'Keripik Singkong Balado 200g', supplier: 'PT Camilan Halal', price: 'Rp 28.500', badge: 'Halal Tayiban', rating: 4.5, emoji: '🥔', bg: 'bg-yellow-50' },
-  { id: 6, name: 'Kecap Manis Organik 275ml', supplier: 'CV Kecap Sejahtera', price: 'Rp 38.000', badge: 'Halal Tayiban', rating: 4.5, emoji: '🍶', bg: 'bg-amber-50' },
-]
+export default function ProductCatalog({ onNavigate, userRole, onSetRole }: Props) {
+  const { t } = useTranslation();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showHalalOnly, setShowHalalOnly] = useState(false);
+  const [selectedProductQR, setSelectedProductQR] = useState<string | null>(null);
 
-const categories = ['Makanan', 'Minuman', 'Bumbu']
-const halalStatuses = ['Semua', 'Halal MUI', 'Halal Tayiban']
+  const primaryColor = 
+    userRole === 'seller' ? 'bg-green-600' :
+    userRole === 'distributor' ? 'bg-blue-600' :
+    userRole === 'customer' ? 'bg-violet-600' : 'bg-green-600';
 
-export default function ProductCatalog({ onNavigate }: Props) {
-  const [activeNav, setActiveNav] = useState('product-catalog')
-  const [activeCategory, setActiveCategory] = useState('Makanan')
-  const [halalStatus, setHalalStatus] = useState('Semua')
-  const [priceMax, setPriceMax] = useState(100000)
-  const [search, setSearch] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [cart, setCart] = useState<number[]>([])
+  const textColor = 
+    userRole === 'seller' ? 'text-green-600' :
+    userRole === 'distributor' ? 'text-blue-600' :
+    userRole === 'customer' ? 'text-violet-600' : 'text-green-600';
 
-  function handleNav(id: string) {
-    setActiveNav(id)
-    if (id !== 'product-catalog') onNavigate(id)
-  }
+  const categories = ['All', 'Makanan', 'Minuman', 'Bumbu', 'Kosmetik', 'Suplemen'];
 
-  function addToCart(id: number) {
-    setCart(prev => [...prev, id])
-  }
-
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+  const filteredProducts = MOCK_PRODUCTS.filter(p => {
+    if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
+    if (showHalalOnly && !p.halalCert) return false;
+    if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
 
   return (
-    <div className="flex h-screen font-['Inter',sans-serif] overflow-hidden bg-gray-900">
-      <aside className="w-52 bg-[#111827] flex flex-col shrink-0">
-        <div className="px-4 py-5 border-b border-white/10 cursor-pointer" onClick={() => onNavigate('landing')}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white font-extrabold text-sm">S</div>
-            <span className="text-white font-extrabold text-sm tracking-wide">SUKAHALAL</span>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <AppHeader 
+          title="Katalog Produk"
+          breadcrumb="Dashboard > Katalog Produk"
+          userRole={userRole} 
+          onSetRole={onSetRole} 
+        />
+        
+        {/* KPI Mini-bar */}
+        <div className="bg-white border-b border-slate-200 p-4 shrink-0 flex flex-wrap gap-4 items-center justify-between z-10 shadow-sm relative">
+          <div className="flex space-x-6">
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500 uppercase font-semibold">{t('Total Products')}</span>
+              <span className={`text-xl font-bold ${textColor}`}>{MOCK_PRODUCTS.length}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500 uppercase font-semibold">{t('In Cart')}</span>
+              <span className="text-xl font-bold text-slate-700">12</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500 uppercase font-semibold">{t('Halal Certified')}</span>
+              <span className="text-xl font-bold text-green-600">92%</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs text-slate-500 uppercase font-semibold">{t('Avg Price')}</span>
+              <span className="text-xl font-bold text-slate-700">Rp 48.000</span>
+            </div>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {sideNav.map(item => (
-            <button key={item.id} onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                activeNav === item.id ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <span className="text-base w-5 text-center">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="px-4 py-4 border-t border-white/10">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">S</div>
-            <span className="text-white text-xs font-semibold">SUKAHALAL</span>
-          </div>
-          <div className="text-gray-500 text-[10px]">Sertifikasi No.</div>
-          <div className="text-gray-400 text-[10px] font-mono">ID001100001234556</div>
-        </div>
-      </aside>
 
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="bg-green-600 text-white text-xs px-6 py-2 flex items-center gap-2">
-          <span>👋</span>
-          <span className="font-medium">Selamat Datang, Ahmad!</span>
-          <span className="text-green-200">| Kelola Stok Halal Anda</span>
-          {cart.length > 0 && (
-            <button onClick={() => onNavigate('cart')} className="ml-auto bg-white text-green-700 font-bold px-2 py-0.5 rounded-full text-xs hover:bg-green-50 transition-colors">
-              🛒 {cart.length} item di keranjang →
-            </button>
-          )}
-        </div>
-
-        <div className="p-6">
-          <div className="mb-5">
-            <h1 className="text-xl font-extrabold text-gray-900">
-              Katalog Produk <span className="text-gray-400 font-normal">|</span> SUKAHALAL
-            </h1>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <div>
-              <div className="text-xs text-gray-500 mb-1 font-medium">Search Input</div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
-                <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari produk, supplier, atau bahan..."
-                  className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 bg-white" />
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 mb-1 font-medium">Category</div>
-              <div className="flex gap-1">
-                {categories.map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)}
-                    className={`flex-1 text-xs px-2 py-2 rounded-lg font-medium transition-colors ${activeCategory === cat ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-                  >{cat}</button>
-                ))}
-                <button className="px-2 py-2 bg-white border border-gray-200 rounded-lg text-gray-400 text-xs">▾</button>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 mb-1 font-medium">Price Range: Rp 10.000 – Rp {priceMax.toLocaleString('id-ID')}</div>
-              <input type="range" min={10000} max={200000} value={priceMax} onChange={e => setPriceMax(Number(e.target.value))} className="w-full accent-green-600" />
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 mb-1 font-medium">Halal Status</div>
-              <div className="flex gap-1 flex-wrap">
-                {halalStatuses.map(s => (
-                  <button key={s} onClick={() => setHalalStatus(s)}
-                    className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${halalStatus === s ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-                  >{s}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {filtered.map(p => (
-              <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                <button className={`${p.bg} h-36 flex items-center justify-center relative w-full`} onClick={() => onNavigate('product-detail')}>
-                  <span className="text-6xl">{p.emoji}</span>
-                  <span className="absolute top-2 right-2 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    🌙 {p.badge}
-                  </span>
-                </button>
-                <div className="p-4">
-                  <div className="font-bold text-gray-900 text-sm mb-0.5">{p.name}</div>
-                  <div className="text-xs text-gray-500 mb-3">{p.supplier}</div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-green-700 font-extrabold">{p.price}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full">✅ {p.badge}</span>
-                      <span className="text-amber-400 text-xs">★</span>
-                      <span className="text-xs font-semibold text-gray-700">{p.rating}</span>
-                    </div>
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:flex-row gap-6">
+          {/* Filters */}
+          <div className="w-full lg:w-64 shrink-0 space-y-6">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+              <h3 className="font-bold text-slate-800 mb-4">{t('Search & Filter')}</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <input 
+                    type="text" 
+                    placeholder={t('Search products...')}
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-green-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-semibold text-slate-700 mb-2 block">{t('Category')}</label>
+                  <div className="space-y-2">
+                    {categories.map(c => (
+                      <label key={c} className="flex items-center space-x-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="category"
+                          checked={selectedCategory === c}
+                          onChange={() => setSelectedCategory(c)}
+                          className="text-green-600 focus:ring-green-500"
+                        />
+                        <span className="text-slate-600 text-sm">{t(c)}</span>
+                      </label>
+                    ))}
                   </div>
-                  <button onClick={() => addToCart(p.id)}
-                    className={`w-full text-xs font-bold py-2.5 rounded-xl transition-colors ${cart.includes(p.id) ? 'bg-gray-200 text-gray-600' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-                  >
-                    {cart.includes(p.id) ? '✓ Ditambahkan' : 'Tambah ke Keranjang'}
-                  </button>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={showHalalOnly}
+                      onChange={e => setShowHalalOnly(e.target.checked)}
+                      className="rounded text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-slate-700 text-sm font-medium">{t('Halal Certified Only')}</span>
+                  </label>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">Halaman:</span>
-              {[1, 2, 3].map(n => (
-                <button key={n} onClick={() => setCurrentPage(n)} className={`w-7 h-7 rounded-lg text-sm font-medium ${currentPage === n ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{n}</button>
+          {/* Product Grid */}
+          <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-md">
+                  <div className="h-48 bg-slate-100 flex items-center justify-center text-6xl relative">
+                    {product.emoji}
+                    {product.halalCert && (
+                      <div className="absolute top-3 right-3 bg-white p-1 rounded-full shadow-sm">
+                        <div className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-green-200">
+                          ✨ Halal Tayyiban
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-slate-800 text-lg leading-tight">{product.name}</h3>
+                      <TrafficLightStatus status={product.stockStatus as any} size="sm" />
+                    </div>
+                    
+                    <p className="text-sm text-slate-500 mb-3">{product.supplier}</p>
+                    
+                    <div className="flex items-center space-x-1 mb-4">
+                      <span className="text-amber-400 text-sm">★</span>
+                      <span className="text-sm font-medium text-slate-700">{product.rating}</span>
+                    </div>
+                    
+                    <div className="mt-auto">
+                      <div className="text-xl font-bold text-slate-900 mb-4">
+                        Rp {product.price.toLocaleString('id-ID')}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {(userRole === 'seller' || userRole === 'distributor') ? (
+                          <>
+                            <button className={`flex-1 ${primaryColor} text-white py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity`}>
+                              {t('Edit')} ({product.stock})
+                            </button>
+                            <button 
+                              onClick={() => setSelectedProductQR(product.id)}
+                              className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+                              title={t('Traceability QR')}
+                            >
+                              🔍
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button className={`flex-1 ${primaryColor} text-white py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity`}>
+                              {t('Tambah ke Keranjang')}
+                            </button>
+                            <button 
+                              onClick={() => onNavigate('ProductDetail')}
+                              className="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors"
+                            >
+                              {t('Detail')}
+                            </button>
+                            <button 
+                              onClick={() => setSelectedProductQR(product.id)}
+                              className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors"
+                              title={t('Traceability QR')}
+                            >
+                              🔍
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-              <span className="text-gray-400">...</span>
-              <button className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-lg text-sm">10</button>
-              <button className="text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-lg text-sm">Next &rsaquo;</button>
             </div>
-            <div className="text-sm text-gray-500">Total Produk: <span className="font-bold text-gray-900">120</span></div>
+            
+            <div className="mt-8 flex justify-center">
+              <button className="px-6 py-2 bg-white border border-slate-300 rounded-full text-slate-700 font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                {t('Muat Lebih Banyak')}
+              </button>
+            </div>
           </div>
         </div>
       </main>
+
+      <TraceabilityModal 
+        isOpen={!!selectedProductQR} 
+        onClose={() => setSelectedProductQR(null)} 
+        productId={selectedProductQR || ''} 
+      />
     </div>
-  )
+  );
 }

@@ -1,217 +1,183 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
 
-interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
+
+interface PageProps {
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-const guides = [
-  {
-    id: 1, title: 'Cara Mendaftar sebagai Penjual', duration: '3 menit', category: 'Onboarding',
-    steps: ['Klik tombol Daftar di halaman utama', 'Isi data perusahaan dan NPWP', 'Verifikasi email dan nomor telepon', 'Lengkapi profil toko Anda'],
-    icon: '🛒', color: 'bg-green-50 border-green-200',
-  },
-  {
-    id: 2, title: 'Upload Dokumen Sertifikasi Halal', duration: '5 menit', category: 'Dokumen',
-    steps: ['Buka menu Dokumen di sidebar', 'Pilih Tipe Dokumen: Sertifikat Halal', 'Drag & drop atau browse file PDF', 'AI akan mengekstrak data otomatis', 'Klik Konfirmasi dan Kirim ke BPJPH'],
-    icon: '📄', color: 'bg-teal-50 border-teal-200',
-  },
-  {
-    id: 3, title: 'Menambahkan Produk ke Katalog', duration: '4 menit', category: 'Produk',
-    steps: ['Masuk ke menu Katalog Produk', 'Klik tombol Tambah Produk', 'Isi nama, deskripsi, dan harga', 'Upload foto produk', 'Lampirkan sertifikat halal yang relevan', 'Publikasikan produk'],
-    icon: '📦', color: 'bg-amber-50 border-amber-200',
-  },
-  {
-    id: 4, title: 'Proses Verifikasi BPJPH', duration: '10 menit', category: 'Verifikasi',
-    steps: ['Submit dokumen dari menu Pusat Verifikasi', 'Tunggu AI-Analysis (1-2 hari kerja)', 'Review oleh tim BPJPH (3-5 hari kerja)', 'Terima notifikasi status persetujuan', 'Download sertifikat halal digital'],
-    icon: '🛡️', color: 'bg-blue-50 border-blue-200',
-  },
-  {
-    id: 5, title: 'Mengelola Pesanan Masuk', duration: '3 menit', category: 'Pesanan',
-    steps: ['Buka menu Pesanan di dashboard', 'Lihat daftar pesanan baru', 'Konfirmasi atau tolak pesanan', 'Update status pengiriman', 'Selesaikan pesanan setelah diterima pelanggan'],
-    icon: '🛒', color: 'bg-purple-50 border-purple-200',
-  },
-  {
-    id: 6, title: 'Menggunakan Fitur Marketing', duration: '5 menit', category: 'Marketing',
-    steps: ['Buka menu Marketing', 'Pilih Buat Kampanye Baru', 'Atur diskon atau promo produk', 'Tentukan durasi kampanye', 'Aktifkan dan pantau performa'],
-    icon: '📢', color: 'bg-pink-50 border-pink-200',
-  },
-]
+export default function Tutorial({ onNavigate, userRole, onSetRole }: PageProps) {
+  const { t } = useTranslation();
+  const [activeCategory, setActiveCategory] = useState('Semua');
+  const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
-const categories = ['Semua', 'Onboarding', 'Dokumen', 'Produk', 'Verifikasi', 'Pesanan', 'Marketing']
+  const categories = ['Semua', 'Onboarding', 'Dokumen', 'Produk', 'Verifikasi', 'Pesanan', 'Marketing', 'SJPH'];
+  
+  const guides = [
+    { title: 'Cara Mendaftar sebagai Seller', category: 'Onboarding', duration: '5 min', icon: '📝', steps: 4 },
+    { title: 'Unggah Sertifikat Halal', category: 'Dokumen', duration: '3 min', icon: '📄', steps: 3 },
+    { title: 'Tambah Produk Baru', category: 'Produk', duration: '7 min', icon: '📦', steps: 5 },
+    { title: 'Proses Verifikasi BPJPH', category: 'Verifikasi', duration: '10 min', icon: '✅', steps: 6 },
+    { title: 'Mengelola Pesanan Masuk', category: 'Pesanan', duration: '4 min', icon: '🛒', steps: 3 },
+    { title: 'Membuat Promosi Diskon', category: 'Marketing', duration: '5 min', icon: '🏷️', steps: 4 },
+    { title: 'Panduan Audit Internal', category: 'SJPH', duration: '15 min', icon: '🔍', steps: 7 },
+    { title: 'Integrasi Sensor IoT', category: 'Sistem', duration: '8 min', icon: '📡', steps: 5 },
+  ];
 
-export default function Tutorial({ onNavigate }: Props) {
-  const [activeCategory, setActiveCategory] = useState('Semua')
-  const [openGuide, setOpenGuide] = useState<number | null>(null)
-  const [search, setSearch] = useState('')
-  const [showVideoModal, setShowVideoModal] = useState(false)
-  const [showSupportModal, setShowSupportModal] = useState(false)
-  const [supportSent, setSupportSent] = useState(false)
-
-  const filtered = guides.filter(g =>
-    (activeCategory === 'Semua' || g.category === activeCategory) &&
-    g.title.toLowerCase().includes(search.toLowerCase())
-  )
+  const sjphSteps = [
+    { id: 1, title: 'Kebijakan Halal', desc: 'Menetapkan komitmen tertulis perusahaan untuk menghasilkan produk halal secara konsisten.' },
+    { id: 2, title: 'SOP Pelaksanaan', desc: 'Membuat Standar Operasional Prosedur untuk aktivitas kritis (pembelian, produksi, penyimpanan).' },
+    { id: 3, title: 'Monitoring & Evaluasi', desc: 'Melakukan pemantauan berkala terhadap pelaksanaan SOP dan kondisi fasilitas.' },
+    { id: 4, title: 'Audit Internal', desc: 'Melaksanakan audit internal minimal 1 kali setahun untuk memastikan kepatuhan.' },
+    { id: 5, title: 'Tinjauan Manajemen', desc: 'Rapat pimpinan untuk mengevaluasi efektivitas Sistem Jaminan Produk Halal.' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-            <span className="font-extrabold text-green-700">SUKAHALAL</span>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {userRole !== 'guest' && <AppSidebar onNavigate={onNavigate} userRole={userRole} />}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />
+        
+        <div className="flex-1 overflow-y-auto">
+          {/* Hero Banner */}
+          <div className="bg-gradient-to-r from-green-700 to-green-500 p-10 text-white relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+            <div className="relative z-10 max-w-2xl">
+              <h1 className="text-3xl font-bold mb-4">{t('Pusat Bantuan & Tutorial')}</h1>
+              <p className="mb-6 opacity-90">{t('Pelajari cara menggunakan SUKAHALAL dan pahami regulasi Jaminan Produk Halal.')}</p>
+              <div className="relative">
+                <span className="absolute left-4 top-3 text-gray-400">🔍</span>
+                <input 
+                  type="text" 
+                  placeholder={t('Cari topik bantuan...')} 
+                  className="w-full pl-11 pr-4 py-3 rounded-xl text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                />
+              </div>
+            </div>
           </div>
-          <button onClick={() => onNavigate('dashboard')} className="text-sm text-gray-500 hover:text-gray-700">← Kembali ke Dashboard</button>
-        </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Hero */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-500 rounded-2xl p-8 text-white mb-8">
-          <h1 className="text-2xl font-extrabold mb-2">Pusat Tutorial SUKAHALAL</h1>
-          <p className="text-green-100 text-sm mb-5">Panduan lengkap untuk memaksimalkan penggunaan platform halal supply-chain Anda</p>
-          <div className="relative max-w-md">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-300">🔍</span>
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari panduan..."
-              className="w-full bg-white/20 border border-white/30 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-green-200 focus:outline-none focus:bg-white/30" />
-          </div>
-        </div>
-
-        {/* Category filter */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === cat ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}>
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Guide cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map(guide => (
-            <div key={guide.id} className={`bg-white border ${guide.color} rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
-              <div className="p-5">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="text-3xl">{guide.icon}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{guide.category}</span>
-                      <span className="text-xs text-gray-400">⏱ {guide.duration}</span>
+          <div className="p-6 max-w-6xl mx-auto space-y-10">
+            
+            {/* SJPH Digital Wizard */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🧙‍♂️</span>
+                <h2 className="text-xl font-bold text-gray-800">{t('SJPH Digital Wizard')}</h2>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <p className="text-sm text-gray-600 mb-6">Panduan langkah demi langkah implementasi Sistem Jaminan Produk Halal (SJPH) di perusahaan Anda.</p>
+                <div className="space-y-4">
+                  {sjphSteps.map(step => (
+                    <div key={step.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button 
+                        onClick={() => setExpandedStep(expandedStep === step.id ? null : step.id)}
+                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-green-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${expandedStep === step.id ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                            {step.id}
+                          </div>
+                          <span className="font-semibold text-gray-800">{step.title}</span>
+                        </div>
+                        <span className="text-gray-400">{expandedStep === step.id ? '▲' : '▼'}</span>
+                      </button>
+                      {expandedStep === step.id && (
+                        <div className="p-4 bg-white border-t border-gray-100">
+                          <p className="text-sm text-gray-600 mb-4">{step.desc}</p>
+                          <button className="text-sm text-green-600 font-medium hover:underline">Baca panduan lengkap →</button>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="font-bold text-gray-900 text-sm">{guide.title}</h3>
-                  </div>
-                </div>
-
-                {openGuide === guide.id ? (
-                  <div className="space-y-2 mb-3">
-                    {guide.steps.map((step, i) => (
-                      <div key={i} className="flex gap-2.5 items-start">
-                        <div className="w-5 h-5 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</div>
-                        <span className="text-sm text-gray-600">{step}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 mb-3">{guide.steps.length} langkah mudah untuk memulai</p>
-                )}
-
-                <button onClick={() => setOpenGuide(openGuide === guide.id ? null : guide.id)}
-                  className="w-full text-sm font-semibold text-green-600 hover:text-green-700 border border-green-200 hover:bg-green-50 py-2 rounded-xl transition-colors">
-                  {openGuide === guide.id ? '▲ Sembunyikan' : '▼ Lihat Panduan'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Video CTA */}
-        <div className="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
-          <div className="text-5xl mb-3">🎬</div>
-          <h3 className="font-bold text-gray-900 mb-2">Butuh bantuan lebih lanjut?</h3>
-          <p className="text-sm text-gray-500 mb-4">Tonton video tutorial kami atau hubungi tim support SUKAHALAL</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <button onClick={() => setShowVideoModal(true)} className="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
-              ▶ Tonton Video Tutorial
-            </button>
-            <button onClick={() => setShowSupportModal(true)} className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2">
-              💬 Hubungi Support
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Video Modal */}
-      {showVideoModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="bg-gray-900 h-64 flex flex-col items-center justify-center relative">
-              <div className="text-6xl mb-3">▶️</div>
-              <p className="text-white text-sm font-medium">Tutorial SUKAHALAL</p>
-              <p className="text-gray-400 text-xs mt-1">Video tutorial lengkap platform halal supply-chain</p>
-              <div className="absolute bottom-3 left-4 right-4">
-                <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500 rounded-full w-1/3" />
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-gray-400 text-[10px]">3:24 / 10:00</span>
-                  <span className="text-gray-400 text-[10px]">HD</span>
+                  ))}
                 </div>
               </div>
-            </div>
-            <div className="p-4 flex items-center justify-between">
-              <p className="text-sm text-gray-700 font-medium">Panduan Lengkap SUKAHALAL</p>
-              <button onClick={() => setShowVideoModal(false)} className="text-sm text-gray-500 hover:text-gray-700 font-medium">Tutup ✕</button>
-            </div>
-          </div>
-        </div>
-      )}
+            </section>
 
-      {/* Support Modal */}
-      {showSupportModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            {!supportSent ? (
-              <>
-                <h2 className="font-extrabold text-gray-900 text-lg mb-4">💬 Hubungi Support</h2>
-                <div className="space-y-3 mb-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 block mb-1">Nama</label>
-                    <input type="text" placeholder="Nama Anda" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 block mb-1">Pesan</label>
-                    <textarea placeholder="Tuliskan pertanyaan atau masalah Anda..." rows={3}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none" />
-                  </div>
+            {/* Halal Literacy Hub */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">📚</span>
+                <h2 className="text-xl font-bold text-gray-800">{t('Halal Literacy Hub')}</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">✨</div>
+                  <h3 className="font-bold text-blue-900 mb-2">Apa itu Halal Tayiban?</h3>
+                  <p className="text-sm text-blue-800 mb-4">Tidak hanya halal secara syariat, tapi juga baik, aman, dan berkualitas tinggi untuk dikonsumsi.</p>
+                  <button className="text-xs font-bold text-blue-600 uppercase tracking-wider hover:underline">Pelajari &gt;</button>
                 </div>
-                <div className="space-y-2">
-                  <button onClick={() => setSupportSent(true)} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                    Kirim Pesan
+                <div className="bg-purple-50 border border-purple-100 rounded-xl p-5 hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">🏷️</div>
+                  <h3 className="font-bold text-purple-900 mb-2">Cara Baca Label Halal</h3>
+                  <p className="text-sm text-purple-800 mb-4">Pahami elemen penting pada logo Halal Indonesia terbaru dari BPJPH dan nomor sertifikatnya.</p>
+                  <button className="text-xs font-bold text-purple-600 uppercase tracking-wider hover:underline">Pelajari &gt;</button>
+                </div>
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-5 hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">⚖️</div>
+                  <h3 className="font-bold text-orange-900 mb-2">Info Regulasi UU JPH</h3>
+                  <p className="text-sm text-orange-800 mb-4">Ringkasan UU No. 33 Tahun 2014 tentang Jaminan Produk Halal dan kewajiban sertifikasi 2024.</p>
+                  <button className="text-xs font-bold text-orange-600 uppercase tracking-wider hover:underline">Pelajari &gt;</button>
+                </div>
+              </div>
+            </section>
+
+            {/* Platform Guides */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">📱</span>
+                <h2 className="text-xl font-bold text-gray-800">{t('Panduan Penggunaan Platform')}</h2>
+              </div>
+              
+              <div className="flex overflow-x-auto pb-4 gap-2 mb-4 scrollbar-hide">
+                {categories.map(cat => (
+                  <button 
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    {cat}
                   </button>
-                  <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer"
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
-                    📱 Chat via WhatsApp
-                  </a>
-                  <button onClick={() => setShowSupportModal(false)} className="w-full text-sm text-gray-500 hover:text-gray-700 py-2">Batal</button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-4">
-                <div className="text-4xl mb-3">✅</div>
-                <h2 className="font-extrabold text-gray-900 text-lg mb-2">Pesan Terkirim!</h2>
-                <p className="text-sm text-gray-500 mb-4">Tim support kami akan menghubungi Anda dalam 1x24 jam.</p>
-                <button onClick={() => { setShowSupportModal(false); setSupportSent(false) }} className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">Tutup</button>
+                ))}
               </div>
-            )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {guides.filter(g => activeCategory === 'Semua' || g.category === activeCategory).map((guide, idx) => (
+                  <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-green-400 hover:shadow-md transition-all cursor-pointer group">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center text-xl group-hover:bg-green-50 group-hover:scale-110 transition-transform">
+                        {guide.icon}
+                      </div>
+                      <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded font-medium">{guide.category}</span>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">{guide.title}</h3>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>⏱️ {guide.duration}</span>
+                      <span>{guide.steps} langkah</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Support */}
+            <div className="bg-green-50 rounded-xl border border-green-100 p-6 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-green-800 mb-1">Masih butuh bantuan?</h3>
+                <p className="text-sm text-green-700">Tim support kami siap membantu Anda 24/7 via WhatsApp.</p>
+              </div>
+              <button className="px-6 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 flex items-center gap-2">
+                <span>💬</span> Hubungi Support
+              </button>
+            </div>
+
           </div>
         </div>
-      )}
+      </main>
     </div>
-  )
+  );
 }

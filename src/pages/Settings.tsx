@@ -1,228 +1,265 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
 
-interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
+
+interface PageProps {
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-export default function Settings({ onNavigate, userRole }: Props) {
-  const [name, setName] = useState(userRole === 'seller' ? 'Ahmad Seller' : userRole === 'distributor' ? 'PT Distribusi Halal' : 'Budi Customer')
-  const [email, setEmail] = useState(userRole === 'seller' ? 'ahmad@seller.id' : userRole === 'distributor' ? 'info@distribusi.co.id' : 'budi@email.com')
-  const [phone, setPhone] = useState('+62 812-3456-7890')
-  const [lang, setLang] = useState<'ID' | 'EN'>('ID')
-  const [notifEmail, setNotifEmail] = useState(true)
-  const [notifPush, setNotifPush] = useState(true)
-  const [notifSMS, setNotifSMS] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'profil' | 'notifikasi' | 'keamanan' | 'preferensi'>('profil')
-
-  function handleSave() {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
-
-  const roleLabel = userRole === 'seller' ? 'Penjual (Seller)' : userRole === 'distributor' ? 'Distributor' : userRole === 'customer' ? 'Konsumen' : 'Guest'
-  const roleColor = userRole === 'seller' ? 'bg-green-100 text-green-700' : userRole === 'distributor' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+export default function Settings({ onNavigate, userRole, onSetRole }: PageProps) {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('Profil');
 
   return (
-    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-            <span className="font-extrabold text-green-700">SUKAHALAL</span>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">{t('Pengaturan')}</h1>
+            <p className="text-sm text-gray-500">Dashboard &gt; {t('Pengaturan')}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${roleColor}`}>{roleLabel}</span>
-            <button onClick={() => onNavigate('dashboard')} className="text-sm text-gray-500 hover:text-gray-700">← Dashboard</button>
-          </div>
-        </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-xl font-extrabold text-gray-900 mb-1">Pengaturan</h1>
-        <p className="text-sm text-gray-500 mb-6">Kelola profil dan preferensi akun Anda</p>
-
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 mb-6">
-          {([
-            { id: 'profil', label: '👤 Profil', },
-            { id: 'notifikasi', label: '🔔 Notifikasi' },
-            { id: 'keamanan', label: '🔒 Keamanan' },
-            { id: 'preferensi', label: '⚙️ Preferensi' },
-          ] as const).map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`px-5 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === t.id ? 'text-green-600 border-b-2 border-green-600 -mb-px' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >{t.label}</button>
-          ))}
-        </div>
-
-        {activeTab === 'profil' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-3xl">
-                {userRole === 'seller' ? '🛒' : userRole === 'distributor' ? '🚛' : '👤'}
-              </div>
-              <div>
-                <h2 className="font-bold text-gray-900">{name}</h2>
-                <p className="text-sm text-gray-500">{email}</p>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block ${roleColor}`}>{roleLabel}</span>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+            {/* Vertical Tabs */}
+            <div className="w-full md:w-64 border-r border-gray-100 bg-gray-50/50">
+              <div className="flex md:flex-col">
+                {[
+                  { id: 'Profil', icon: '👤' },
+                  { id: 'Notifikasi', icon: '🔔' },
+                  { id: 'Keamanan', icon: '🔒' },
+                  { id: 'Preferensi', icon: '⚙️' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 md:flex-none flex items-center gap-3 px-6 py-4 text-sm font-medium border-l-4 transition-colors ${activeTab === tab.id ? 'border-green-600 bg-white text-green-700' : 'border-transparent text-gray-600 hover:bg-gray-100'}`}
+                  >
+                    <span className="text-lg">{tab.icon}</span>
+                    <span className="hidden md:inline">{t(tab.id)}</span>
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                  <input type="text" value={phone} onChange={e => setPhone(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-              </div>
-              {userRole === 'seller' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">NPWP Perusahaan</label>
-                  <input type="text" defaultValue="12.345.678.9-012.345" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+
+            {/* Tab Content */}
+            <div className="flex-1 p-8">
+              
+              {activeTab === 'Profil' && (
+                <div className="max-w-2xl">
+                  <h2 className="text-lg font-bold text-gray-800 mb-6">{t('Informasi Profil')}</h2>
+                  
+                  <div className="flex items-center gap-6 mb-8">
+                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center text-3xl overflow-hidden relative group cursor-pointer">
+                      👤
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-white text-xs">Edit</span>
+                      </div>
+                    </div>
+                    <div>
+                      <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Ubah Foto</button>
+                      <p className="text-xs text-gray-500 mt-2">JPG, GIF atau PNG maksimal 2MB.</p>
+                    </div>
+                  </div>
+
+                  <form className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('Nama Lengkap / Perusahaan')}</label>
+                        <input type="text" defaultValue="Budi Santoso" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('Email')}</label>
+                        <input type="email" defaultValue="budi@example.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('Nomor Telepon')}</label>
+                        <input type="tel" defaultValue="081234567890" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{userRole === 'seller' ? t('NPWP Perusahaan') : t('ID Identitas')}</label>
+                        <input type="text" defaultValue="12.345.678.9-012.000" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end">
+                      <button type="button" className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        {t('Simpan Perubahan')}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
-              {userRole === 'distributor' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Izin Distributor</label>
-                  <input type="text" defaultValue="REG1234567890" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+
+              {activeTab === 'Notifikasi' && (
+                <div className="max-w-2xl">
+                  <h2 className="text-lg font-bold text-gray-800 mb-6">{t('Pengaturan Notifikasi')}</h2>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Saluran Komunikasi</h3>
+                      <div className="space-y-3">
+                        {['Email', 'Push Notification Browser', 'SMS (Hanya peringatan penting)'].map((item, i) => (
+                          <div key={i} className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">{item}</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" className="sr-only peer" defaultChecked={i !== 2} />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t border-gray-100">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Jenis Peringatan</h3>
+                      <div className="space-y-3">
+                        {[
+                          'Sertifikat Halal akan Expired (H-30)',
+                          'Pesanan Masuk Baru',
+                          'Stok Produk Menipis',
+                          'Update Status Pengiriman',
+                          'Laporan Audit Internal'
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">{item}</span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" className="sr-only peer" defaultChecked={i < 4} />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
-              <button onClick={handleSave}
-                className={`w-full font-bold py-3 rounded-xl text-sm transition-colors ${saved ? 'bg-green-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}>
-                {saved ? '✓ Tersimpan!' : 'Simpan Perubahan'}
-              </button>
-            </div>
-          </div>
-        )}
 
-        {activeTab === 'notifikasi' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-            <h3 className="font-bold text-gray-900 mb-4">Pengaturan Notifikasi</h3>
-            {[
-              { label: 'Notifikasi Email', desc: 'Terima pembaruan melalui email', checked: notifEmail, setter: setNotifEmail },
-              { label: 'Push Notification', desc: 'Notifikasi real-time di browser', checked: notifPush, setter: setNotifPush },
-              { label: 'Notifikasi SMS', desc: 'Terima SMS untuk pesanan penting', checked: notifSMS, setter: setNotifSMS },
-            ].map(n => (
-              <div key={n.label} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                <div>
-                  <div className="text-sm font-medium text-gray-800">{n.label}</div>
-                  <div className="text-xs text-gray-500">{n.desc}</div>
+              {activeTab === 'Keamanan' && (
+                <div className="max-w-2xl">
+                  <h2 className="text-lg font-bold text-gray-800 mb-6">{t('Keamanan Akun')}</h2>
+                  
+                  <div className="mb-8 p-4 border border-gray-200 rounded-lg flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        Autentikasi Dua Faktor (2FA)
+                        <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Belum Aktif</span>
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">Lindungi akun Anda dengan lapisan keamanan tambahan.</p>
+                    </div>
+                    <button className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900">Aktifkan</button>
+                  </div>
+
+                  <div className="mb-8">
+                    <h3 className="font-semibold text-gray-800 mb-4">Ubah Kata Sandi</h3>
+                    <form className="space-y-4 max-w-sm">
+                      <div>
+                        <input type="password" placeholder="Kata Sandi Saat Ini" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" />
+                      </div>
+                      <div>
+                        <input type="password" placeholder="Kata Sandi Baru" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" />
+                      </div>
+                      <div>
+                        <input type="password" placeholder="Konfirmasi Kata Sandi Baru" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" />
+                      </div>
+                      <button type="button" className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Perbarui Kata Sandi</button>
+                    </form>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-gray-800">Sesi Aktif</h3>
+                      <button className="text-sm text-red-600 hover:underline">Keluar dari semua perangkat</button>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">💻</span>
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">Windows • Chrome</p>
+                            <p className="text-xs text-gray-500">Jakarta, Indonesia • Saat ini aktif</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button onClick={() => n.setter(!n.checked)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${n.checked ? 'bg-green-500' : 'bg-gray-300'}`}>
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform shadow-sm ${n.checked ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+              )}
 
-        {activeTab === 'keamanan' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-            <h3 className="font-bold text-gray-900 mb-4">Keamanan Akun</h3>
-            <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-800">Kata Sandi</div>
-                <div className="text-xs text-gray-500">Terakhir diubah 30 hari yang lalu</div>
-              </div>
-              <button onClick={() => setShowPasswordModal(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
-                Ubah Password
-              </button>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-800">Autentikasi 2 Faktor</div>
-                <div className="text-xs text-gray-500">Tingkatkan keamanan akun Anda</div>
-              </div>
-              <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2.5 py-1 rounded-full">Belum Aktif</span>
-            </div>
-            <div className="p-4 bg-red-50 rounded-xl flex items-center justify-between border border-red-200">
-              <div>
-                <div className="text-sm font-medium text-red-700">Logout dari Semua Perangkat</div>
-                <div className="text-xs text-red-400">Keluar dari seluruh sesi aktif</div>
-              </div>
-              <button onClick={() => onNavigate('logout')} className="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
+              {activeTab === 'Preferensi' && (
+                <div className="max-w-2xl">
+                  <h2 className="text-lg font-bold text-gray-800 mb-6">{t('Preferensi Tampilan & Regional')}</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('Bahasa')}</label>
+                        <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                          <option>Bahasa Indonesia (ID)</option>
+                          <option>English (EN)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('Zona Waktu')}</label>
+                        <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                          <option>WIB (UTC+07:00)</option>
+                          <option>WITA (UTC+08:00)</option>
+                          <option>WIT (UTC+09:00)</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('Mata Uang')}</label>
+                        <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                          <option>Rupiah (IDR)</option>
+                          <option>US Dollar (USD)</option>
+                        </select>
+                      </div>
+                    </div>
 
-        {activeTab === 'preferensi' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-            <h3 className="font-bold text-gray-900 mb-4">Preferensi Tampilan</h3>
-            <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-800">Bahasa / Language</div>
-                <div className="text-xs text-gray-500">Pilih bahasa antarmuka</div>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => setLang('ID')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${lang === 'ID' ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
-                  🇮🇩 Indonesia
-                </button>
-                <button onClick={() => setLang('EN')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${lang === 'EN' ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
-                  🇬🇧 English
-                </button>
-              </div>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-800">Mode Gelap</div>
-                <div className="text-xs text-gray-500">Tampilan lebih nyaman di malam hari</div>
-              </div>
-              <button onClick={() => setDarkMode(!darkMode)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${darkMode ? 'bg-green-500' : 'bg-gray-300'}`}>
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform shadow-sm ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+                    <div className="pt-4 border-t border-gray-100 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">Mode Gelap (Dark Mode)</p>
+                          <p className="text-xs text-gray-500">Sesuaikan tampilan antarmuka</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-800"></div>
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">Tampilan Data Default</p>
+                          <p className="text-xs text-gray-500">Pilih antara Card View atau Table View</p>
+                        </div>
+                        <div className="flex bg-gray-100 rounded-lg p-1">
+                          <button className="px-3 py-1 bg-white shadow-sm rounded-md text-sm font-medium text-gray-800">Card</button>
+                          <button className="px-3 py-1 text-sm font-medium text-gray-500 hover:text-gray-800">Table</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-      {/* Password Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
-            <h2 className="font-extrabold text-gray-900 text-lg mb-4">Ubah Kata Sandi</h2>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Password Lama</label>
-                <input type="password" placeholder="Masukan password lama" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Password Baru</label>
-                <input type="password" placeholder="Masukan password baru" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Konfirmasi Password</label>
-                <input type="password" placeholder="Ulangi password baru" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => setShowPasswordModal(false)} className="flex-1 border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50">Batal</button>
-                <button onClick={() => setShowPasswordModal(false)} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">Simpan</button>
-              </div>
             </div>
           </div>
         </div>
-      )}
+      </main>
     </div>
-  )
+  );
 }

@@ -1,215 +1,181 @@
-import { useState } from 'react'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import KPIWidget from '../components/KPIWidget';
+
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
 interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-type Status = 'Aktif' | 'Dijadwalkan' | 'Berakhir'
+const mockCampaigns = [
+  { id: 1, name: 'Promo Berkah Ramadan', type: 'Diskon', status: 'Aktif', progress: 65, duration: '1 Mar - 30 Mar', sales: 'Rp 15.2Jt', reach: '5,200' },
+  { id: 2, name: 'Flash Sale Jumat Berkah', type: 'Flash Sale', status: 'Aktif', progress: 20, duration: 'Setiap Jumat', sales: 'Rp 4.5Jt', reach: '1,800' },
+  { id: 3, name: 'Bundle Sembako Halal', type: 'Bundle', status: 'Selesai', progress: 100, duration: '1 Feb - 28 Feb', sales: 'Rp 22.0Jt', reach: '8,400' },
+  { id: 4, name: 'Voucher Pelanggan Baru', type: 'Voucher', status: 'Aktif', progress: 45, duration: 'Selalu', sales: 'Rp 6.5Jt', reach: '3,100' },
+];
 
-const initialCampaigns: { id: number; name: string; type: string; discount: string; start: string; end: string; status: Status; reach: number; orders: number }[] = [
-  { id: 1, name: 'Promo Ramadan Berkah', type: 'Diskon Produk', discount: '20%', start: '01 Mar', end: '30 Mar', status: 'Aktif', reach: 1240, orders: 87 },
-  { id: 2, name: 'Flash Sale Jumat Halal', type: 'Flash Sale', discount: '35%', start: '07 Apr', end: '07 Apr', status: 'Dijadwalkan', reach: 0, orders: 0 },
-  { id: 3, name: 'Buy 2 Get 1 Bumbu', type: 'Bundle', discount: 'B2G1', start: '15 Feb', end: '28 Feb', status: 'Berakhir', reach: 890, orders: 145 },
-]
-
-const statusColors: Record<Status, string> = {
-  'Aktif': 'bg-green-100 text-green-700',
-  'Dijadwalkan': 'bg-blue-100 text-blue-700',
-  'Berakhir': 'bg-gray-100 text-gray-500',
-}
-
-export default function Marketing({ onNavigate }: Props) {
-  const [showForm, setShowForm] = useState(false)
-  const [editId, setEditId] = useState<number | null>(null)
-  const [newCampaign, setNewCampaign] = useState({ name: '', type: 'Diskon Produk', discount: '', start: '', end: '' })
-  const [campaigns, setCampaigns] = useState(initialCampaigns)
-
-  function handleCreate() {
-    if (!newCampaign.name) return
-    if (editId !== null) {
-      setCampaigns(prev => prev.map(c => c.id === editId ? {
-        ...c, name: newCampaign.name, type: newCampaign.type, discount: newCampaign.discount || c.discount,
-        start: newCampaign.start || c.start, end: newCampaign.end || c.end,
-      } : c))
-    } else {
-      setCampaigns(prev => [...prev, {
-        id: prev.length + 1, name: newCampaign.name, type: newCampaign.type,
-        discount: newCampaign.discount || '10%', start: newCampaign.start || '-', end: newCampaign.end || '-',
-        status: 'Dijadwalkan', reach: 0, orders: 0,
-      }])
-    }
-    setShowForm(false)
-    setEditId(null)
-    setNewCampaign({ name: '', type: 'Diskon Produk', discount: '', start: '', end: '' })
-  }
-
-  function handleEdit(c: typeof initialCampaigns[0]) {
-    setEditId(c.id)
-    setNewCampaign({ name: c.name, type: c.type, discount: c.discount, start: c.start, end: c.end })
-    setShowForm(true)
-  }
-
-  function handleActivate(id: number) {
-    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: 'Aktif' as Status } : c))
-  }
-
-  function handleStop(id: number) {
-    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: 'Berakhir' as Status } : c))
-  }
+export default function Marketing({ onNavigate, userRole, onSetRole }: Props) {
+  const { t } = useTranslation();
+  const [showAddModal, setShowAddModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-            <span className="font-extrabold text-green-700">SUKAHALAL</span>
+    <div className="flex h-screen overflow-hidden">
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="marketing" />
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        <AppHeader 
+          onNavigate={onNavigate} 
+          userRole={userRole} 
+          onSetRole={onSetRole}
+          breadcrumbs={[{ label: t('breadcrumbs.dashboard'), page: 'dashboard' }, { label: t('breadcrumbs.marketing') }]}
+        />
+        
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <KPIWidget title={t('marketing.active_campaigns')} value="4" trend="" status="good" />
+            <KPIWidget title={t('marketing.campaign_sales')} value="Rp 48.2Jt" trend="+15%" status="good" />
+            <KPIWidget title={t('marketing.reach')} value="12,400" trend="+8%" status="good" />
+            <KPIWidget title={t('marketing.conversion')} value="8.3%" trend="+1.2%" status="good" />
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => onNavigate('dashboard')} className="text-sm text-gray-500 hover:text-gray-700">← Dashboard</button>
-            <button onClick={() => { setEditId(null); setNewCampaign({ name: '', type: 'Diskon Produk', discount: '', start: '', end: '' }); setShowForm(true) }}
-              className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-              + Buat Kampanye
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-xl font-extrabold text-gray-900 mb-1">Marketing & Promosi</h1>
-        <p className="text-sm text-gray-500 mb-6">Kelola kampanye promosi produk halal Anda</p>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Kampanye Aktif', value: campaigns.filter(c => c.status === 'Aktif').length, color: 'text-green-600', icon: '✅' },
-            { label: 'Total Jangkauan', value: campaigns.reduce((a, c) => a + c.reach, 0).toLocaleString('id-ID'), color: 'text-blue-600', icon: '👁️' },
-            { label: 'Total Pesanan', value: campaigns.reduce((a, c) => a + c.orders, 0), color: 'text-amber-600', icon: '🛒' },
-            { label: 'Kampanye Total', value: campaigns.length, color: 'text-gray-800', icon: '📢' },
-          ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <div className="text-lg mb-1">{s.icon}</div>
-              <div className={`text-2xl font-extrabold ${s.color}`}>{s.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Campaign list */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-gray-900 text-sm">Daftar Kampanye</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  {['Nama Kampanye', 'Tipe', 'Diskon', 'Periode', 'Status', 'Jangkauan', 'Pesanan', 'Aksi'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {campaigns.map(c => (
-                  <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{c.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.type}</td>
-                    <td className="px-4 py-3 font-bold text-amber-600">{c.discount}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{c.start} – {c.end}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[c.status]}`}>{c.status}</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{c.reach.toLocaleString('id-ID')}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.orders}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleEdit(c)} className="text-blue-600 hover:underline text-xs font-medium">Edit</button>
-                        {c.status === 'Dijadwalkan' && (
-                          <button onClick={() => handleActivate(c.id)} className="text-green-600 hover:underline text-xs font-medium">Aktifkan</button>
-                        )}
-                        {c.status === 'Aktif' && (
-                          <button onClick={() => handleStop(c.id)} className="text-red-500 hover:underline text-xs font-medium">Hentikan</button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Tips */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <h3 className="font-bold text-amber-800 mb-3 flex items-center gap-2"><span>💡</span> Tips Marketing Produk Halal</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              'Tampilkan badge "Halal Tayiban" secara mencolok di setiap promosi',
-              'Buat kampanye spesial di bulan Ramadan dan Idul Fitri',
-              'Tawarkan bundle produk halal yang saling melengkapi',
-              'Gunakan media sosial untuk mempromosikan sertifikasi BPJPH Anda',
-            ].map((tip, i) => (
-              <div key={i} className="flex gap-2 text-sm text-amber-700">
-                <span className="shrink-0 mt-0.5">•</span> {tip}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Create/Edit campaign modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <h2 className="font-extrabold text-gray-900 text-lg mb-5">{editId ? 'Edit Kampanye' : 'Buat Kampanye Baru'}</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Nama Kampanye</label>
-                <input type="text" value={newCampaign.name} onChange={e => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  placeholder="e.g. Promo Hari Raya 2024"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Tipe</label>
-                  <select value={newCampaign.type} onChange={e => setNewCampaign({ ...newCampaign, type: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
-                    {['Diskon Produk', 'Flash Sale', 'Bundle', 'Voucher'].map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Diskon</label>
-                  <input type="text" value={newCampaign.discount} onChange={e => setNewCampaign({ ...newCampaign, discount: e.target.value })}
-                    placeholder="e.g. 15%"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Tanggal Mulai</label>
-                  <input type="date" value={newCampaign.start} onChange={e => setNewCampaign({ ...newCampaign, start: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">Tanggal Berakhir</label>
-                  <input type="date" value={newCampaign.end} onChange={e => setNewCampaign({ ...newCampaign, end: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => { setShowForm(false); setEditId(null) }} className="flex-1 border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm hover:bg-gray-50">Batal</button>
-                <button onClick={handleCreate} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
-                  {editId ? 'Simpan Perubahan' : 'Buat Kampanye'}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">{t('marketing.campaign_list')}</h2>
+                <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
+                  + {t('marketing.add_campaign')}
                 </button>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {mockCampaigns.map(camp => (
+                  <div key={camp.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-gray-900">{camp.name}</h3>
+                        <span className="inline-block mt-1 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded font-medium">{camp.type}</span>
+                      </div>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${camp.status === 'Aktif' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                        {camp.status}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-500 mb-4">🗓️ {camp.duration}</p>
+                    
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-500">Progress</span>
+                        <span className="font-medium text-gray-700">{camp.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div className={`h-1.5 rounded-full ${camp.status === 'Aktif' ? 'bg-green-500' : 'bg-gray-400'}`} style={{ width: `${camp.progress}%` }}></div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between border-t border-gray-100 pt-4 mt-2">
+                      <div>
+                        <p className="text-xs text-gray-500">Sales</p>
+                        <p className="font-bold text-gray-900">{camp.sales}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Reach</p>
+                        <p className="font-bold text-gray-900">{camp.reach}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-bold text-gray-900 mb-4">💡 Halal Marketing Tips</h3>
+                <div className="space-y-4">
+                  {[
+                    { icon: '📜', text: 'Tampilkan sertifikat halal secara prominent' },
+                    { icon: '🌿', text: 'Gunakan visual bahan-bahan alami (halal tayiban)' },
+                    { icon: '🕌', text: 'Kampanye di momen Islami (Ramadan, dll)' },
+                    { icon: '🔗', text: 'Edukasi konsumen tentang rantai pasok halal' },
+                    { icon: '🏭', text: 'Highlight proses produksi syariah' },
+                    { icon: '💬', text: 'Testimonial dari konsumen Muslim' },
+                  ].map((tip, idx) => (
+                    <div key={idx} className="flex items-start">
+                      <span className="text-xl mr-3">{tip.icon}</span>
+                      <p className="text-sm text-gray-700">{tip.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-bold text-gray-900 mb-4">📅 Momen Islami Terdekat</h3>
+                <div className="space-y-3">
+                  <div className="border-l-4 border-green-500 pl-3">
+                    <p className="text-xs text-green-600 font-bold">10 Hari Lagi</p>
+                    <p className="font-medium text-gray-900">Awal Ramadan 1448 H</p>
+                    <p className="text-xs text-gray-500">Rekomendasi: Diskon Kurma & Madu</p>
+                  </div>
+                  <div className="border-l-4 border-gray-300 pl-3">
+                    <p className="text-xs text-gray-500 font-bold">40 Hari Lagi</p>
+                    <p className="font-medium text-gray-700">Idul Fitri</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
+
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+              <h2 className="text-xl font-bold mb-4">{t('marketing.add_campaign_modal')}</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kampanye</label>
+                  <input type="text" className="w-full border border-gray-300 rounded-lg p-2 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                    <select className="w-full border border-gray-300 rounded-lg p-2">
+                      <option>Diskon</option>
+                      <option>Flash Sale</option>
+                      <option>Bundle</option>
+                      <option>Voucher</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Diskon (%)</label>
+                    <input type="number" className="w-full border border-gray-300 rounded-lg p-2" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                    <input type="date" className="w-full border border-gray-300 rounded-lg p-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                    <input type="date" className="w-full border border-gray-300 rounded-lg p-2" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                  <textarea rows={3} className="w-full border border-gray-300 rounded-lg p-2"></textarea>
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3 justify-end">
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">{t('common.cancel')}</button>
+                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium">{t('common.save')}</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
-  )
+  );
 }

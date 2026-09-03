@@ -1,62 +1,125 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 @import 'tailwindcss';
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-border: var(--border);
-  --color-ring: var(--ring);
-  --radius-default: var(--radius);
-}
-
 :root {
-  --background: #f0f4f8;
-  --foreground: #1e293b;
+  --background: #f0f7f4;
+  --foreground: #1a2e1e;
   --card: #ffffff;
-  --card-foreground: #1e293b;
   --primary: #16a34a;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #475569;
+  --secondary: #f0fdf4;
   --muted: #f8fafc;
-  --muted-foreground: #64748b;
   --accent: #d97706;
-  --accent-foreground: #ffffff;
-  --border: #e2e8f0;
+  --border: #d1fae5;
   --ring: #16a34a;
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+  
+  /* Role colors */
+  --seller-primary: #16a34a;
+  --seller-light: #f0fdf4;
+  --seller-accent: #d97706;
+  --distributor-primary: #2563eb;
+  --distributor-light: #eff6ff;
+  --distributor-accent: #06b6d4;
+  --customer-primary: #7c3aed;
+  --customer-light: #f5f3ff;
+  --customer-accent: #db2777;
 }
 
 html, body, #root {
   height: 100%;
+}
+
+body {
   font-family: 'Inter', sans-serif;
 }
 
-* {
-  scrollbar-width: none;
+.font-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
-*::-webkit-scrollbar {
-  display: none;
+
+.font-arabic {
+  font-family: 'Amiri', serif;
 }
-*:hover {
-  scrollbar-width: thin;
+
+/* Custom styles */
+.pattern-bg {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2316a34a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
-*:hover::-webkit-scrollbar {
-  display: block;
-  width: 4px;
-  height: 4px;
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background-color: transparent;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 10px;
 }
 *:hover::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
+  background-color: #cbd5e1;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-halal {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.halal-badge {
+  animation: pulse-halal 2s infinite;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.gradient-halal {
+  background: linear-gradient(135deg, var(--primary) 0%, #14b8a6 100%);
+}
+.gradient-seller {
+  background: linear-gradient(135deg, var(--seller-primary) 0%, var(--seller-accent) 100%);
+}
+.gradient-distributor {
+  background: linear-gradient(135deg, var(--distributor-primary) 0%, var(--distributor-accent) 100%);
+}
+.gradient-customer {
+  background: linear-gradient(135deg, var(--customer-primary) 0%, var(--customer-accent) 100%);
 }
