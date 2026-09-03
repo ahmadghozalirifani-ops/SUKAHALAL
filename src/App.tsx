@@ -87,17 +87,20 @@ export default function App() {
     }
   }
 
-  function handleSetRole(role: UserRole) {
+  function handleSetRole(role: UserRole, targetPage?: string) {
     setUserRole(role)
-  }
-
-  function handleQuickRoleSwitch(role: UserRole) {
-    setUserRole(role)
-    if (role === 'guest') {
+    if (targetPage && ALL_PAGES.includes(targetPage as Page)) {
+      setCurrent(targetPage as Page)
+    } else if (role === 'guest') {
       setCurrent('landing')
     } else {
       setCurrent('dashboard')
     }
+    window.scrollTo(0, 0)
+  }
+
+  function handleQuickRoleSwitch(role: UserRole) {
+    handleSetRole(role)
     setShowRoleSwitcher(false)
   }
 

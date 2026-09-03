@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import AppHeader from '../components/AppHeader';
 import AppSidebar from '../components/AppSidebar';
 import KPIWidget from '../components/KPIWidget';
-import TrafficLightStatus from '../components/TrafficLightStatus';
 
 type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
@@ -13,239 +12,407 @@ interface Props {
   onSetRole: (role: UserRole) => void;
 }
 
-const mockOrders = [
-  { id: 'ORD-001', customer: 'Ahmad Fulan', date: '2026-09-01', total: 150000, status: 'Baru', courier: 'HalalLogistics', items: [{ name: 'Rendang Sapi', qty: 2, icon: '🥩', price: 75000 }] },
-  { id: 'ORD-002', customer: 'Siti Aminah', date: '2026-09-02', total: 45000, status: 'Diproses', courier: 'JNE', items: [{ name: 'Keripik Tempe', qty: 3, icon: '🍘', price: 15000 }] },
-  { id: 'ORD-003', customer: 'Budi Santoso', date: '2026-09-02', total: 250000, status: 'Dikirim', courier: 'SiCepat', items: [{ name: 'Madu Hutan', qty: 1, icon: '🍯', price: 250000 }] },
-  { id: 'ORD-004', customer: 'Aisyah', date: '2026-09-03', total: 30000, status: 'Selesai', courier: 'GoSend', items: [{ name: 'Kopi Arabika', qty: 1, icon: '☕', price: 30000 }] },
-  { id: 'ORD-005', customer: 'Umar', date: '2026-09-03', total: 120000, status: 'Baru', courier: 'JNT', items: [{ name: 'Kurma Ajwa', qty: 1, icon: '🌴', price: 120000 }] },
-  { id: 'ORD-006', customer: 'Khadijah', date: '2026-09-03', total: 55000, status: 'Dibatalkan', courier: 'GrabExpress', items: [{ name: 'Susu Kambing', qty: 1, icon: '🥛', price: 55000 }] },
-  { id: 'ORD-007', customer: 'Usman', date: '2026-09-03', total: 80000, status: 'Diproses', courier: 'AnterAja', items: [{ name: 'Sambal Roa', qty: 2, icon: '🌶️', price: 40000 }] },
-  { id: 'ORD-008', customer: 'Fatimah', date: '2026-09-03', total: 95000, status: 'Selesai', courier: 'NinjaXpress', items: [{ name: 'Teh Hijau', qty: 5, icon: '🍵', price: 19000 }] },
-];
-
 export default function Pesanan({ onNavigate, userRole, onSetRole }: Props) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('Semua');
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Baru': return 'bg-blue-100 text-blue-800';
-      case 'Diproses': return 'bg-amber-100 text-amber-800';
-      case 'Dikirim': return 'bg-cyan-100 text-cyan-800';
-      case 'Selesai': return 'bg-green-100 text-green-800';
-      case 'Dibatalkan': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const filteredOrders = filter === 'Semua' ? mockOrders : mockOrders.filter(o => o.status === filter);
+  // 1. DATA PESANAN UNTUK SUPPLIER / PRODUSEN (Pesanan masuk ke pabrik)
+  const sellerOrders = [
+    {
+      id: 'ORD-B2B-8912',
+      buyer: 'Halal Mart Fatmawati (Mitra Grosir)',
+      date: '04 Sep 2026, 09:15',
+      items: '50 Pouch Rendang Daging Sapi Suwir Retort (300g)',
+      total: 4250000,
+      status: 'Menunggu Proses',
+      courier: 'PT Pos Logistik Halal (Truk Refrigerator B 9482 PXZ)',
+      halalCert: 'ID32110000123450223',
+      badgeCls: 'bg-amber-100 text-amber-900 border-amber-300'
+    },
+    {
+      id: 'ORD-CUST-4120',
+      buyer: 'Nadya Putri (Konsumen Eceran)',
+      date: '04 Sep 2026, 08:30',
+      items: '2 Pouch Rendang Daging Sapi Suwir Retort',
+      total: 170000,
+      status: 'Sedang Dikemas',
+      courier: 'Bestie Halal Express (Dry Box Van)',
+      halalCert: 'ID32110000123450223',
+      badgeCls: 'bg-blue-100 text-blue-900 border-blue-300'
+    },
+    {
+      id: 'ORD-B2B-8901',
+      buyer: 'Super Indo Halal Corner Cilandak',
+      date: '03 Sep 2026, 14:00',
+      items: '100 Pouch Rendang Sapi & 50 Kopi Arabika Gayo',
+      total: 10250000,
+      status: 'Diserahkan ke Kurir',
+      courier: 'PT Pos Logistik Halal (Armada B 9102 UXZ)',
+      halalCert: 'ID32110000123450223',
+      badgeCls: 'bg-emerald-100 text-emerald-900 border-emerald-300'
+    }
+  ];
+
+  // 2. DATA MANIFEST UNTUK DISTRIBUTOR / LOGISTIK (Muatan yang harus diantar)
+  const distributorManifests = [
+    {
+      manifestNo: 'MNF-REFRIG-001',
+      fleet: 'Truk Refrigerator (B 9482 PXZ)',
+      driver: 'Pak Bambang (0812-9988-1122)',
+      route: 'Pabrik Bunda Halal (Bandung Barat) ➔ Hub Distribusi Jakarta',
+      cargo: '120 Koli Pouch Retort Steril & Daging Chilled',
+      targetTemp: '-18°C (Live: -18.4°C)',
+      rfidSeal: 'SEAL-RFID-9941 (Terkunci Aman)',
+      status: 'Dalam Perjalanan',
+      sanitationCheck: 'Lolos Cuci Standar HAS 23000'
+    },
+    {
+      manifestNo: 'MNF-DRY-002',
+      fleet: 'Truk Boks Kering Tertutup (B 9102 UXZ)',
+      driver: 'Pak Dedi Supriadi (0813-8899-7711)',
+      route: 'Sentra Rempah Padalarang ➔ Halal Mart Fatmawati',
+      cargo: '80 Karung Biji Kopi Gayo & Rempah Kering',
+      targetTemp: 'Suhu Ruang 24.5°C',
+      rfidSeal: 'BARCODE-SEAL-8812 (Utuh)',
+      status: 'Tiba di Tujuan (Bongkar Muat)',
+      sanitationCheck: 'Wadah Kargo Bersih & Kering'
+    },
+    {
+      manifestNo: 'MNF-CHILLED-003',
+      fleet: 'Chilled Box Van (D 8812 AB)',
+      driver: 'Pak Hendra (0811-2233-4455)',
+      route: 'KPBS Lembang ➔ Pabrik Pengolahan Bandung',
+      cargo: '40 Krat Susu Sapi Segar Pasteurisasi',
+      targetTemp: '4°C (Live: 3.8°C)',
+      rfidSeal: 'SEAL-RFID-7710 (Terkunci)',
+      status: 'Dalam Perjalanan',
+      sanitationCheck: 'Sanitasi Tangki Susu Selesai'
+    }
+  ];
+
+  // 3. DATA PESANAN UNTUK KONSUMEN / PEMBELI (Belanjaan saya)
+  const customerOrders = [
+    {
+      id: 'ORD-CUST-4120',
+      productName: 'Rendang Daging Sapi Suwir Padang Retort (300g)',
+      qty: 2,
+      price: 170000,
+      orderDate: '04 Sep 2026, 08:30 WIB',
+      producer: 'PT Bunda Halal Foods',
+      halalCert: 'ID32110000123450223',
+      courierStatus: 'Kurir Pos Logistik Halal sedang menuju alamatmu',
+      estArrival: 'Hari ini, 14:30 WIB',
+      currentTemp: 'Suhu Boks Kurir: -18.4°C',
+      status: 'Sedang Diantar',
+      trackingStep: 3
+    },
+    {
+      id: 'ORD-CUST-3982',
+      productName: 'Kopi Arabika Gayo Single Origin (250g)',
+      qty: 1,
+      price: 85000,
+      orderDate: '28 Agu 2026, 11:20 WIB',
+      producer: 'Koperasi Kopi Barokah Gayo',
+      halalCert: 'ID11210000876540122',
+      courierStatus: 'Pesanan telah diterima oleh Nadya Putri',
+      estArrival: 'Selesai Diterima',
+      currentTemp: 'Suhu Standar',
+      status: 'Selesai',
+      trackingStep: 4
+    }
+  ];
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="pesanan" />
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-[#fafcfb] font-sans text-slate-800">
+      {userRole !== 'guest' && <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="pesanan" />}
+      
+      <main className="flex-1 flex flex-col overflow-hidden">
         <AppHeader 
           onNavigate={onNavigate} 
           userRole={userRole} 
           onSetRole={onSetRole}
-          breadcrumbs={[{ label: t('breadcrumbs.dashboard'), page: 'dashboard' }, { label: t('breadcrumbs.orders') }]}
+          title={
+            userRole === 'seller' ? 'Pesanan Masuk Toko' :
+            userRole === 'distributor' ? 'Manifest Muatan Armada' :
+            userRole === 'customer' ? 'Pesanan Belanja Saya' : 'Pelacakan Pesanan'
+          }
+          breadcrumb="Dashboard > Pesanan"
         />
-        
-        <div className="p-6 max-w-7xl mx-auto space-y-6">
-          {/* Quick Navigation Strip */}
-          <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => onNavigate('dashboard')}
-                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
-              >
-                <span>←</span> Dashboard
-              </button>
-              <span className="text-xs text-gray-400 font-bold">|</span>
-              <span className="text-xs font-bold text-gray-800">Manajemen Pesanan & Ekspedisi Halal</span>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => onNavigate('product-catalog')}
-                className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <span>📦</span> Katalog Produk
-              </button>
-              <button 
-                onClick={() => onNavigate('supply-chain')}
-                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <span>🚚</span> Lacak Cold Chain Rantai Pasok
-              </button>
-              <button 
-                onClick={() => onNavigate('inventaris')}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              >
-                <span>📋</span> Stok Inventaris
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <KPIWidget title={t('orders.total')} value="82" trend="+5%" status="good" />
-            <KPIWidget title={t('orders.pending')} value="12" trend="-2%" status="warning" />
-            <KPIWidget title={t('orders.shipping')} value="34" trend="+10%" status="good" />
-            <KPIWidget title={t('orders.completed')} value="36" trend="+8%" status="good" />
-          </div>
-
-          <div className="flex space-x-2 overflow-x-auto pb-1">
-            {['Semua', 'Baru', 'Diproses', 'Dikirim', 'Selesai', 'Dibatalkan'].map(f => (
-              <button 
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-full whitespace-nowrap ${filter === f ? 'bg-green-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 shadow-sm'}`}
-              >
-                {t(`orders.status.${f.toLowerCase()}`, f)}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrders.map(order => (
-              <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{order.id}</h3>
-                    <p className="text-sm text-gray-500">{order.customer} • {order.date}</p>
-                  </div>
-                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                    {order.status}
-                  </span>
-                </div>
-                
-                <div className="space-y-3 mb-4">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center text-sm">
-                      <span className="text-xl mr-3 bg-gray-50 p-2 rounded-lg">{item.icon}</span>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-800">{item.name}</p>
-                        <p className="text-gray-500">{item.qty}x • Rp {item.price.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
-                  <div className="text-sm">
-                    <p className="text-gray-500">{t('orders.courier')}</p>
-                    <p className="font-medium">{order.courier}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gray-500 text-sm">{t('orders.total_amount')}</p>
-                    <p className="font-bold text-green-600">Rp {order.total.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <button 
-                    onClick={() => setSelectedOrder(order)}
-                    className="flex-1 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100"
-                  >
-                    {t('orders.view_details')}
-                  </button>
-                  {userRole === 'seller' && order.status === 'Baru' && (
-                    <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
-                      {t('orders.action.confirm')}
-                    </button>
-                  )}
-                  {userRole === 'seller' && order.status === 'Diproses' && (
-                    <button className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm font-medium hover:bg-cyan-700">
-                      {t('orders.action.ship')}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {selectedOrder && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('orders.detail_title')} {selectedOrder.id}</h2>
-                  <p className="text-gray-500">{selectedOrder.date}</p>
-                </div>
-                <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-              
-              <div className="p-6 space-y-8">
-                {/* SCOR Flow */}
-                <section>
-                  <h3 className="font-semibold text-gray-900 mb-4">{t('orders.scor_flow')}</h3>
-                  <div className="flex justify-between items-center relative">
-                    <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
-                    {['Plan', 'Source', 'Make', 'Deliver', 'Return'].map((step, idx) => (
-                      <div key={step} className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${idx < 4 ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                          {idx + 1}
-                        </div>
-                        <p className="mt-2 text-xs font-medium text-gray-600">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Halal Chain Info */}
-                  <section className="bg-green-50 rounded-xl p-5 border border-green-100">
-                    <h3 className="font-semibold text-green-900 mb-3 flex items-center">
-                      <span className="mr-2">✅</span> {t('orders.halal_chain_status')}
-                    </h3>
-                    <div className="space-y-3">
-                      {selectedOrder.items.map((item: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-sm">
-                          <span className="text-green-800">{item.name}</span>
-                          <span className="bg-green-200 text-green-900 px-2 py-1 rounded text-xs font-medium">Verified ID123456789</span>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Payment & Shipping */}
-                  <section className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                    <h3 className="font-semibold text-gray-900 mb-3">{t('orders.payment_shipping')}</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t('orders.payment_method')}</span>
-                        <span className="font-medium text-gray-900">BSI Syariah</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t('orders.courier')}</span>
-                        <span className="font-medium text-gray-900">{selectedOrder.courier}</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
-                        <span className="text-gray-500">{t('orders.resi')}</span>
-                        <input type="text" placeholder="Input resi..." className="text-right text-sm border-b border-gray-300 bg-transparent focus:outline-none focus:border-green-500" defaultValue={selectedOrder.status === 'Dikirim' ? 'JP1234567890' : ''} disabled={userRole !== 'seller'} />
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => {
-                        setSelectedOrder(null);
-                        onNavigate('supply-chain');
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 mt-4 shadow-xs transition-colors"
-                    >
-                      <span>🚚</span> Lacak Posisi Armada Ekspedisi di Rantai Pasok &rarr;
-                    </button>
-                  </section>
-                </div>
-              </div>
-            </div>
+        {/* Toast alert */}
+        {toast && (
+          <div className="fixed top-16 right-6 z-50 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs shadow-xl animate-fade-in flex items-center gap-2">
+            <span>✨</span> {toast}
           </div>
         )}
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl mx-auto w-full">
+          
+          {/* Header Banner Tailored to Role */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  {userRole === 'seller' ? '🏪 Panel Produsen UMKM' :
+                   userRole === 'distributor' ? '🚚 Panel Ekspedisi Logistik' :
+                   userRole === 'customer' ? '🛍️ Panel Konsumen Pembeli' : '🌐 Mode Tamu'}
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900">
+                {userRole === 'seller' && 'Daftar Pesanan Masuk (Order Fulfillment)'}
+                {userRole === 'distributor' && 'Manifest Pengiriman & Penugasan Armada'}
+                {userRole === 'customer' && 'Riwayat Belanja & Pelacakan Paket Saya'}
+                {userRole === 'guest' && 'Pusat Pelacakan Paket Halal'}
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {userRole === 'seller' && 'Kelola pesanan dari konsumen dan mitra grosir, konfirmasi stok, dan serahkan paket ke kurir halal.'}
+                {userRole === 'distributor' && 'Kelola daftar kargo angkut harian, pantau suhu sensor IoT telemetri, dan pastikan keutuhan segel RFID.'}
+                {userRole === 'customer' && 'Pantau posisi kurir pengantar paket Anda dan unduh berkas sertifikat BPJPH untuk setiap produk.'}
+                {userRole === 'guest' && 'Pantau alur keterlacakan pesanan halal dari hulu hingga hilir.'}
+              </p>
+            </div>
+
+            <div className="flex gap-2 shrink-0">
+              {userRole === 'seller' && (
+                <button
+                  onClick={() => onNavigate('product-management')}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                >
+                  ➕ Tambah Produk
+                </button>
+              )}
+              {userRole === 'distributor' && (
+                <button
+                  onClick={() => onNavigate('supply-chain')}
+                  className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                >
+                  📡 Buka Sensor IoT Truk
+                </button>
+              )}
+              {userRole === 'customer' && (
+                <button
+                  onClick={() => onNavigate('product-catalog')}
+                  className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                >
+                  🛍️ Belanja Lagi
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 1. SELLER VIEW: PESANAN MASUK TOKO */}
+          {userRole === 'seller' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Pesanan Menunggu Konfirmasi</span>
+                  <span className="text-xl font-black text-amber-700 mt-0.5 block">1 Pesanan</span>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Sedang Diproses Dapur</span>
+                  <span className="text-xl font-black text-blue-700 mt-0.5 block">1 Pesanan</span>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Nilai Pesanan Hari Ini</span>
+                  <span className="text-xl font-black text-emerald-700 mt-0.5 block">Rp 14.670.000</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {sellerOrders.map(order => (
+                  <div key={order.id} className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-sm">{order.id}</span>
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${order.badgeCls}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 font-semibold mt-0.5">Pemesan: {order.buyer} • {order.date}</p>
+                      </div>
+
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] text-slate-400 block font-bold">Total Pembayaran Syariah</span>
+                        <span className="text-base font-black text-slate-900">Rp {order.total.toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1">
+                        <span className="text-slate-400 block text-[10px] font-bold">Rincian Muatan Produk:</span>
+                        <p className="font-bold text-slate-900">{order.items}</p>
+                        <p className="text-emerald-800 text-[10px] font-mono">No. Sertifikat: {order.halalCert}</p>
+                      </div>
+
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1">
+                        <span className="text-slate-400 block text-[10px] font-bold">Ekspedisi Logistik Ditugaskan:</span>
+                        <p className="font-bold text-slate-900">{order.courier}</p>
+                        <p className="text-slate-500 text-[10px]">Wadah angkut tersertifikasi bebas kontaminasi</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button
+                        onClick={() => showToast(`Label Barcode EAN-13 untuk ${order.id} berhasil dicetak!`)}
+                        className="px-4 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        🏷️ Cetak Barcode EAN-13
+                      </button>
+                      <button
+                        onClick={() => showToast(`Kurir Pos Logistik dipanggil untuk ${order.id}`)}
+                        className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        ✓ Konfirmasi & Panggil Kurir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 2. DISTRIBUTOR VIEW: MANIFEST ARMADA */}
+          {userRole === 'distributor' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Armada Bergerak</span>
+                  <span className="text-xl font-black text-blue-700 mt-0.5 block">3 Truk Aktif</span>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Status Segel RFID</span>
+                  <span className="text-xl font-black text-emerald-700 mt-0.5 block">100% Tersegel Aman</span>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">SOP Sanitasi HAS 23000</span>
+                  <span className="text-xl font-black text-blue-900 mt-0.5 block">Semua Armada Lolos</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {distributorManifests.map((mnf, idx) => (
+                  <div key={idx} className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-sm">{mnf.manifestNo}</span>
+                          <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                            {mnf.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 font-bold mt-0.5">{mnf.fleet} • Supir: {mnf.driver}</p>
+                      </div>
+
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] text-slate-400 block font-bold">Kondisi Suhu Telemetri</span>
+                        <span className="text-sm font-black text-blue-700">{mnf.targetTemp}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <span className="text-slate-400 block text-[10px] font-bold">Rute Distribusi:</span>
+                        <p className="font-bold text-slate-900 mt-0.5">{mnf.route}</p>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <span className="text-slate-400 block text-[10px] font-bold">Muatan Barang:</span>
+                        <p className="font-bold text-slate-900 mt-0.5">{mnf.cargo}</p>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <span className="text-slate-400 block text-[10px] font-bold">Integritas Wadah & Segel:</span>
+                        <p className="font-bold text-emerald-700 mt-0.5">🔒 {mnf.rfidSeal}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{mnf.sanitationCheck}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <button
+                        onClick={() => showToast(`Status sensor suhu dan GPS untuk ${mnf.manifestNo} telah disinkronkan!`)}
+                        className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        📡 Update Log Sensor Suhu
+                      </button>
+                      <button
+                        onClick={() => showToast(`Gembok RFID ${mnf.manifestNo} diverifikasi aman!`)}
+                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        🔒 Verifikasi Kunci RFID
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3. CUSTOMER VIEW: PESANAN SAYA */}
+          {(userRole === 'customer' || userRole === 'guest') && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customerOrders.map(order => (
+                  <div key={order.id} className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
+                    <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold block">No. Resi: {order.id}</span>
+                        <h3 className="font-black text-slate-900 text-sm mt-0.5">{order.productName}</h3>
+                        <p className="text-[11px] text-slate-500">Jumlah: {order.qty} paket • Rp {order.price.toLocaleString('id-ID')}</p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                        order.status === 'Sedang Diantar' ? 'bg-purple-100 text-purple-900 border border-purple-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+
+                    {/* Progress Track */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold">
+                        <span className="text-slate-700">📍 Status: {order.courierStatus}</span>
+                        <span className="text-purple-700">{order.estArrival}</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-purple-700 h-full rounded-full transition-all"
+                          style={{ width: order.trackingStep === 3 ? '75%' : '100%' }}
+                        ></div>
+                      </div>
+                      <p className="text-[11px] text-blue-700 font-medium">{order.currentTemp}</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => showToast(`Membuka pelacakan GPS real-time untuk ${order.id}`)}
+                        className="px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        🚚 Lacak Kurir
+                      </button>
+                      <button
+                        onClick={() => showToast(`Mengunduh e-Sertifikat BPJPH resmi (${order.halalCert})...`)}
+                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        📄 Unduh Sertifikat BPJPH
+                      </button>
+                      <button
+                        onClick={() => onNavigate('cart')}
+                        className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        🔄 Beli Lagi
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
       </main>
     </div>
   );

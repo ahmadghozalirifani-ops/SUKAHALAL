@@ -33,13 +33,13 @@ export default function AppHeader({
   backPage = 'dashboard'
 }: Props) {
   const { t } = useTranslation()
-  const [showLoginDropdown, setShowLoginDropdown] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowLoginDropdown(false)
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowRoleMenu(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -52,33 +52,50 @@ export default function AppHeader({
     ? [{ label: t('breadcrumbs.dashboard', 'Dashboard'), page: 'dashboard' }, { label: breadcrumb || title || '' }]
     : []
 
-  const roleBadgeColor: Record<string, string> = {
-    seller: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    distributor: 'bg-blue-100 text-blue-800 border-blue-300',
-    customer: 'bg-purple-100 text-purple-800 border-purple-300',
-    guest: 'bg-slate-100 text-slate-700 border-slate-200',
-  }
-  const roleLabels: Record<string, string> = {
-    seller: '🏪 ' + t('roles.seller', 'Produsen / UMKM'),
-    distributor: '🚚 ' + t('roles.distributor', 'Distributor Logistik'),
-    customer: '🛍️ ' + t('roles.customer', 'Konsumen'),
-    guest: '🌐 ' + t('roles.guest', 'Tamu Publik'),
+  const roleConfigs: Record<string, { label: string; icon: string; badgeCls: string; barBg: string; borderCls: string; identity: string }> = {
+    seller: {
+      label: 'Produsen / UMKM',
+      icon: '🏪',
+      badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      barBg: 'bg-emerald-950/95 border-emerald-800',
+      borderCls: 'border-emerald-200',
+      identity: 'PT Bunda Halal Foods Nusantara • NIB: 9120005432190'
+    },
+    distributor: {
+      label: 'Distributor & Logistik',
+      icon: '🚚',
+      badgeCls: 'bg-blue-100 text-blue-800 border-blue-300',
+      barBg: 'bg-slate-950/95 border-blue-900',
+      borderCls: 'border-blue-200',
+      identity: 'PT Pos Logistik Halal • Izin DIST-BPJPH-2024'
+    },
+    customer: {
+      label: 'Konsumen Pembeli',
+      icon: '🛍️',
+      badgeCls: 'bg-purple-100 text-purple-800 border-purple-300',
+      barBg: 'bg-purple-950/95 border-purple-800',
+      borderCls: 'border-purple-200',
+      identity: 'Akun: Nadya Putri • Saldo HalalPay: Rp 450.000'
+    },
+    guest: {
+      label: 'Tamu Publik',
+      icon: '🌐',
+      badgeCls: 'bg-slate-100 text-slate-700 border-slate-200',
+      barBg: 'bg-slate-900 border-slate-800',
+      borderCls: 'border-slate-200',
+      identity: 'Akses Eksplorasi Publik Tanpa Akun'
+    },
   }
 
-  const headerBg: Record<string, string> = {
-    seller: 'border-emerald-200',
-    distributor: 'border-blue-200',
-    customer: 'border-purple-200',
-    guest: 'border-slate-100',
-  }
+  const currentConfig = roleConfigs[userRole] || roleConfigs.guest
 
   return (
-    <div className="sticky top-0 z-30 shadow-2xs">
-      {/* Top Header */}
-      <header className={`bg-white border-b ${headerBg[userRole] || 'border-slate-100'}`}>
+    <div className="sticky top-0 z-30 shadow-2xs font-sans">
+      {/* Top Header Bar */}
+      <header className={`bg-white/95 backdrop-blur-md border-b ${currentConfig.borderCls}`}>
         <div className="max-w-screen-xl mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Logo + Back button + Breadcrumb */}
+            {/* Left: Logo & Navigation */}
             <div className="flex items-center gap-3 min-w-0">
               {showBackButton && (
                 <button
@@ -90,7 +107,7 @@ export default function AppHeader({
                 </button>
               )}
 
-              <Logo size="sm" onClick={() => onNavigate('landing')} />
+              <Logo size="sm" onClick={() => onNavigate(userRole === 'guest' ? 'landing' : 'dashboard')} />
 
               {effectiveBreadcrumbs.length > 0 && (
                 <div className="hidden sm:block">
@@ -103,35 +120,35 @@ export default function AppHeader({
             <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-600">
               <button 
                 onClick={() => onNavigate('product-catalog')} 
-                className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-800 transition-colors cursor-pointer"
               >
                 📦 Katalog Produk
               </button>
               <button 
                 onClick={() => onNavigate('supplier-catalog')} 
-                className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-800 transition-colors cursor-pointer"
               >
-                🏢 Pemasok & Produsen
+                🏢 Pemasok UMKM
               </button>
               <button 
                 onClick={() => onNavigate('supply-chain')} 
-                className="px-2.5 py-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-800 transition-colors cursor-pointer"
               >
-                🚚 Rantai Pasok Terpadu
+                🚚 Rantai Pasok
               </button>
               <button 
                 onClick={() => onNavigate('verification')} 
-                className="px-2.5 py-1.5 rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg hover:bg-amber-50 hover:text-amber-800 transition-colors cursor-pointer"
               >
                 🛡️ Verifikasi SJPH
               </button>
             </div>
 
-            {/* Right: Actions & Tiered Login Dropdown */}
+            {/* Right: Actions & Role Switcher */}
             <div className="flex items-center gap-2 shrink-0">
               <LanguageToggle />
               
-              {userRole !== 'guest' ? (
+              {userRole !== 'guest' && (
                 <>
                   <button
                     onClick={() => onNavigate('cart')}
@@ -152,259 +169,193 @@ export default function AppHeader({
                       </span>
                     )}
                   </button>
-                  <button
-                    onClick={() => onNavigate('settings')}
-                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
-                    title="Pengaturan"
-                  >
-                    ⚙️
-                  </button>
-
-                  {/* Role Status Badge with Switch Option */}
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                      className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                        roleBadgeColor[userRole] || roleBadgeColor.guest
-                      }`}
-                    >
-                      <span>{roleLabels[userRole] || roleLabels.guest}</span>
-                      <span className="text-[10px] opacity-60">▾</span>
-                    </button>
-
-                    {/* Dropdown for role switching / logout */}
-                    {showLoginDropdown && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in text-xs space-y-1">
-                        <div className="px-3 py-2 border-b border-slate-100">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Status Masuk</span>
-                          <strong className="text-slate-900 capitalize">{userRole}</strong>
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            onNavigate('dashboard')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 font-bold text-slate-700 flex items-center gap-2 cursor-pointer"
-                        >
-                          <span>📊</span> Buka Dashboard Role Ini
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            onNavigate('logout')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="w-full text-left px-3 py-2 rounded-xl hover:bg-red-50 font-bold text-red-600 flex items-center gap-2 cursor-pointer"
-                        >
-                          <span>🚪</span> Keluar Akun
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </>
-              ) : (
-                /* Tiered Login Dropdown for Guest */
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                    className="px-4 py-2 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white text-xs font-black rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>🔐</span>
-                    <span>Masuk Akun</span>
-                    <span className="text-[10px] ml-0.5">▾</span>
-                  </button>
-
-                  {/* Tiered Dropdown Menu */}
-                  {showLoginDropdown && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-fade-in text-xs">
-                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                        <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Pilih Jenjang Akses</span>
-                        <p className="text-[11px] text-slate-500">Masuk sesuai peran operasional Anda:</p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <button
-                          onClick={() => {
-                            onNavigate('login-seller')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 transition-colors flex items-start gap-2.5 cursor-pointer"
-                        >
-                          <span className="text-lg bg-emerald-100 text-emerald-800 p-1.5 rounded-lg shrink-0">🏪</span>
-                          <div>
-                            <span className="font-bold text-xs block text-slate-900">Penjual & Produsen UMKM</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">Kelola produk, inventaris bahan baku & verifikasi SJPH</span>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            onNavigate('login-distributor')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 hover:text-blue-900 transition-colors flex items-start gap-2.5 cursor-pointer"
-                        >
-                          <span className="text-lg bg-blue-100 text-blue-800 p-1.5 rounded-lg shrink-0">🚚</span>
-                          <div>
-                            <span className="font-bold text-xs block text-slate-900">Distributor & Ekspedisi</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">Armada logistik umum & cold-chain bersertifikat halal</span>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            onNavigate('login-customer')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 text-slate-800 hover:text-purple-900 transition-colors flex items-start gap-2.5 cursor-pointer"
-                        >
-                          <span className="text-lg bg-purple-100 text-purple-800 p-1.5 rounded-lg shrink-0">🛍️</span>
-                          <div>
-                            <span className="font-bold text-xs block text-slate-900">Konsumen & Pelanggan</span>
-                            <span className="text-[10px] text-slate-500 leading-tight block">Belanja produk terjamin halal dengan pelacakan QR batch</span>
-                          </div>
-                        </button>
-                      </div>
-
-                      <div className="pt-2 mt-1 border-t border-slate-100 flex items-center justify-between px-2">
-                        <span className="text-[10px] text-slate-400">Belum punya akun?</span>
-                        <button
-                          onClick={() => {
-                            onNavigate('register')
-                            setShowLoginDropdown(false)
-                          }}
-                          className="text-xs font-black text-emerald-700 hover:underline cursor-pointer"
-                        >
-                          Daftar Sekarang &rarr;
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
               )}
+
+              {/* Role Switcher Pill & Dropdown */}
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowRoleMenu(!showRoleMenu)}
+                  className={`flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-xl border shadow-2xs transition-all cursor-pointer ${
+                    userRole === 'guest' 
+                      ? 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-600'
+                      : currentConfig.badgeCls
+                  }`}
+                >
+                  <span>{currentConfig.icon}</span>
+                  <span>{userRole === 'guest' ? 'Pilih Peran Masuk' : currentConfig.label}</span>
+                  <span className="text-[10px] opacity-70">▾</span>
+                </button>
+
+                {/* Elegant Role Switching Dropdown */}
+                {showRoleMenu && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-fade-in text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Beralih Peran Sistem</span>
+                      <p className="text-[11px] text-slate-500">Klik untuk langsung membuka portal peran:</p>
+                    </div>
+
+                    <div className="space-y-1 py-1">
+                      <button
+                        onClick={() => {
+                          onSetRole('seller')
+                          setShowRoleMenu(false)
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between cursor-pointer ${
+                          userRole === 'seller' ? 'bg-emerald-50 text-emerald-900 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base p-1.5 rounded-lg bg-emerald-100 text-emerald-800">🏪</span>
+                          <div>
+                            <span className="font-bold block">Produsen / UMKM</span>
+                            <span className="text-[10px] text-slate-400">Kelola SKU, BOM, dan berkas SJPH</span>
+                          </div>
+                        </div>
+                        {userRole === 'seller' && <span className="text-emerald-700 font-black">✓ Aktif</span>}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onSetRole('distributor')
+                          setShowRoleMenu(false)
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between cursor-pointer ${
+                          userRole === 'distributor' ? 'bg-blue-50 text-blue-900 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base p-1.5 rounded-lg bg-blue-100 text-blue-800">🚚</span>
+                          <div>
+                            <span className="font-bold block">Distributor & Logistik</span>
+                            <span className="text-[10px] text-slate-400">Armada kargo umum & pendingin</span>
+                          </div>
+                        </div>
+                        {userRole === 'distributor' && <span className="text-blue-700 font-black">✓ Aktif</span>}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onSetRole('customer')
+                          setShowRoleMenu(false)
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between cursor-pointer ${
+                          userRole === 'customer' ? 'bg-purple-50 text-purple-900 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base p-1.5 rounded-lg bg-purple-100 text-purple-800">🛍️</span>
+                          <div>
+                            <span className="font-bold block">Konsumen / Pembeli</span>
+                            <span className="text-[10px] text-slate-400">Belanja & lacak paket di jalan</span>
+                          </div>
+                        </div>
+                        {userRole === 'customer' && <span className="text-purple-700 font-black">✓ Aktif</span>}
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onSetRole('guest')
+                          setShowRoleMenu(false)
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between cursor-pointer ${
+                          userRole === 'guest' ? 'bg-slate-100 text-slate-900 font-black' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base p-1.5 rounded-lg bg-slate-100 text-slate-800">🌐</span>
+                          <div>
+                            <span className="font-bold block">Mode Tamu Publik</span>
+                            <span className="text-[10px] text-slate-400">Kembali ke landing page publik</span>
+                          </div>
+                        </div>
+                        {userRole === 'guest' && <span className="text-slate-700 font-black">✓ Aktif</span>}
+                      </button>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between px-2 text-[11px]">
+                      <button
+                        onClick={() => {
+                          onNavigate('register')
+                          setShowRoleMenu(false)
+                        }}
+                        className="text-emerald-700 font-bold hover:underline cursor-pointer"
+                      >
+                        Daftar Akun Baru
+                      </button>
+                      <button
+                        onClick={() => {
+                          onSetRole('guest')
+                          onNavigate('landing')
+                          setShowRoleMenu(false)
+                        }}
+                        className="text-red-600 font-semibold hover:underline cursor-pointer"
+                      >
+                        Keluar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* DISTINCT ROLE-SPECIFIC ACCESS STRIP (Prominent visual & operational difference) */}
-      {userRole === 'seller' && (
-        <div className="bg-emerald-800 text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
+      {/* Sleek Role Context Bar (Shows exact identity & role access) */}
+      {userRole !== 'guest' && (
+        <div className={`${currentConfig.barBg} text-white px-4 py-1.5 text-xs flex flex-wrap items-center justify-between gap-3 border-b shadow-inner transition-colors`}>
           <div className="flex items-center gap-2">
-            <span className="bg-emerald-700 text-emerald-200 px-2 py-0.5 rounded-md font-black uppercase text-[10px] border border-emerald-600">
-              Hak Akses Produsen / UMKM
+            <span className="px-2 py-0.5 rounded-md font-black uppercase text-[10px] bg-white/10 text-white border border-white/20">
+              {currentConfig.icon} {currentConfig.label}
             </span>
-            <span className="font-bold text-emerald-100">
-              PT Bunda Halal Foods Nusantara • NIB: 9120005432190
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigate('product-management')}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>➕</span> Tambah Produk
-            </button>
-            <button
-              onClick={() => onNavigate('upload-dokumen')}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📄</span> Berkas SJPH
-            </button>
-            <button
-              onClick={() => onNavigate('pesanan')}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>🛒</span> Pesanan Masuk (12)
-            </button>
-            <button
-              onClick={() => onNavigate('inventaris')}
-              className="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📋</span> Stok Bahan
-            </button>
-          </div>
-        </div>
-      )}
-
-      {userRole === 'distributor' && (
-        <div className="bg-blue-900 text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
-          <div className="flex items-center gap-2">
-            <span className="bg-blue-800 text-blue-200 px-2 py-0.5 rounded-md font-black uppercase text-[10px] border border-blue-700">
-              Hak Akses Distributor & Logistik
-            </span>
-            <span className="font-bold text-blue-100">
-              PT Pos Logistik Halal • Izin Operasional Angkut Halal No. DIST-BPJPH-2024
+            <span className="font-bold text-slate-200 text-[11px] truncate">
+              {currentConfig.identity}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigate('supply-chain')}
-              className="bg-blue-800 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📡</span> Sensor Suhu IoT (-18°C)
-            </button>
-            <button
-              onClick={() => onNavigate('supply-chain')}
-              className="bg-blue-800 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>🚚</span> Armada Kargo & Rute
-            </button>
-            <button
-              onClick={() => onNavigate('verification')}
-              className="bg-blue-800 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>🧼</span> SOP Bebas Najis
-            </button>
-            <button
-              onClick={() => onNavigate('pesanan')}
-              className="bg-blue-800 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📋</span> Manifest Muatan (45)
-            </button>
-          </div>
-        </div>
-      )}
+          <div className="flex items-center gap-1.5">
+            {userRole === 'seller' && (
+              <>
+                <button onClick={() => onNavigate('product-management')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  ➕ Tambah SKU
+                </button>
+                <button onClick={() => onNavigate('pesanan')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  🛒 Pesanan Masuk (12)
+                </button>
+                <button onClick={() => onNavigate('upload-dokumen')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  📄 Berkas SJPH
+                </button>
+              </>
+            )}
 
-      {userRole === 'customer' && (
-        <div className="bg-purple-900 text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
-          <div className="flex items-center gap-2">
-            <span className="bg-purple-800 text-purple-200 px-2 py-0.5 rounded-md font-black uppercase text-[10px] border border-purple-700">
-              Hak Akses Konsumen Pembeli
-            </span>
-            <span className="font-bold text-purple-100">
-              Akun: Nadya Putri • Saldo HalalPay: Rp 450.000
-            </span>
-          </div>
+            {userRole === 'distributor' && (
+              <>
+                <button onClick={() => onNavigate('supply-chain')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  📡 Suhu IoT (-18°C)
+                </button>
+                <button onClick={() => onNavigate('pesanan')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  📋 Manifest Muatan
+                </button>
+                <button onClick={() => onNavigate('verification')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  🧼 SOP Sanitasi
+                </button>
+              </>
+            )}
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigate('cart')}
-              className="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>🛒</span> Keranjang Belanja (3)
-            </button>
-            <button
-              onClick={() => onNavigate('pesanan')}
-              className="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📦</span> Lacak Paket Dikirim
-            </button>
-            <button
-              onClick={() => onNavigate('product-catalog')}
-              className="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>❤️</span> Wishlist Favorit (12)
-            </button>
-            <button
-              onClick={() => onNavigate('product-detail')}
-              className="bg-purple-800 hover:bg-purple-700 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span>📱</span> Cek QR Traceability
-            </button>
+            {userRole === 'customer' && (
+              <>
+                <button onClick={() => onNavigate('cart')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  🛒 Keranjang (3)
+                </button>
+                <button onClick={() => onNavigate('pesanan')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  📦 Lacak Paket
+                </button>
+                <button onClick={() => onNavigate('product-catalog')} className="bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-bold text-[11px] cursor-pointer">
+                  ❤️ Wishlist (12)
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
