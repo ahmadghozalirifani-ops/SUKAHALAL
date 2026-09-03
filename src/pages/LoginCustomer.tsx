@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import AppHeader from '../components/AppHeader';
+import Logo from '../components/Logo';
 import { UserRole } from '../App';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function LoginCustomer({ onNavigate, userRole, onSetRole }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +18,39 @@ export default function LoginCustomer({ onNavigate, userRole, onSetRole }: Props
     onNavigate('product-catalog');
   };
 
+  const currentLang = i18n.language === 'en' ? 'EN' : 'ID';
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-purple-100 font-sans relative">
-      <AppHeader onNavigate={onNavigate} userRole={userRole} />
-      
-      <main className="max-w-md mx-auto pt-32 pb-16 px-4 relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-purple-100 font-sans flex flex-col justify-between relative overflow-hidden">
+      {/* Top Navigation Bar with Logo */}
+      <header className="w-full px-8 py-5 flex items-center justify-between z-20">
+        <Logo size="md" onClick={() => onNavigate('landing')} />
+        <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1 font-semibold text-gray-700 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-2xs">
+            <button 
+              onClick={() => i18n.changeLanguage('id')} 
+              className={`cursor-pointer ${currentLang === 'ID' ? 'text-violet-700 underline font-bold' : 'text-gray-400 hover:text-gray-700'}`}
+            >
+              ID
+            </button>
+            <span className="text-gray-300">|</span>
+            <button 
+              onClick={() => i18n.changeLanguage('en')} 
+              className={`cursor-pointer ${currentLang === 'EN' ? 'text-violet-700 underline font-bold' : 'text-gray-400 hover:text-gray-700'}`}
+            >
+              EN
+            </button>
+          </div>
+          <button 
+            onClick={() => onNavigate('landing')} 
+            className="text-xs text-violet-700 hover:underline font-medium"
+          >
+            ← Beranda
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-md mx-auto py-6 px-4 relative z-10 w-full">
         <div className="text-sm text-violet-700 mb-4 font-medium flex items-center gap-2">
           <button onClick={() => onNavigate('landing')} className="hover:underline">Home</button>
           <span>&gt;</span>

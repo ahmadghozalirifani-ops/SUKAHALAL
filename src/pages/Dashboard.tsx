@@ -20,6 +20,15 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
 
   const renderGuestDashboard = () => (
     <div className="w-full min-h-screen bg-white">
+      {/* Top Header for Guest */}
+      <header className="border-b border-gray-100 bg-white sticky top-0 z-30 px-6 py-3 flex items-center justify-between shadow-xs">
+        <Logo size="md" onClick={() => onNavigate('landing')} />
+        <div className="flex items-center gap-3">
+          <LanguageToggle />
+          <button onClick={() => onNavigate('landing')} className="text-xs text-gray-500 hover:text-gray-700 font-medium">← Beranda</button>
+        </div>
+      </header>
+
       {/* Hero */}
       <div className="bg-gradient-to-r from-green-600 to-green-500 py-20 px-6 text-center text-white">
         <h1 className="text-4xl font-bold mb-4">{t('dashboard.welcomeGuest', 'Selamat Datang di SUKAHALAL')}</h1>
