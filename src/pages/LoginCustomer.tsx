@@ -79,8 +79,12 @@ export default function LoginCustomer({ onNavigate, userRole, onSetRole }: Props
               <div className="absolute w-full h-px bg-gray-200 left-0"></div>
             </div>
 
-            <button type="button" className="w-full bg-white border-2 border-violet-200 hover:border-violet-500 text-violet-700 font-bold py-2.5 rounded-xl transition-all">
-              📱 Login dengan OTP (SMS/WhatsApp)
+            <button 
+              type="button" 
+              onClick={(e) => handleLogin(e as any)}
+              className="w-full bg-white border-2 border-violet-200 hover:border-violet-500 text-violet-700 font-bold py-2.5 rounded-xl transition-all cursor-pointer"
+            >
+              📱 Login Cepat dengan OTP
             </button>
 
             <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">

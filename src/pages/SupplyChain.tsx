@@ -137,6 +137,7 @@ export default function SupplyChain({ onNavigate, userRole, onSetRole }: PagePro
         <AppHeader
           onNavigate={onNavigate}
           userRole={userRole}
+          onSetRole={onSetRole}
           breadcrumbs={[
             { label: t('breadcrumbs.dashboard', 'Dashboard'), page: 'dashboard' },
             { label: 'Rantai Pasok Halal Terpadu' }

@@ -158,10 +158,10 @@ export default function LandingPage({ onNavigate, userRole, onSetRole }: Props) 
                   <div className="space-y-1">
                     <button
                       onClick={() => {
-                        onNavigate('login-seller');
+                        onSetRole('seller');
                         setShowLoginDropdown(false);
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 transition-colors flex items-start gap-2.5"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 transition-colors flex items-start gap-2.5 cursor-pointer"
                     >
                       <span className="text-lg bg-emerald-100 text-emerald-800 p-1.5 rounded-lg shrink-0">🏪</span>
                       <div>
@@ -172,10 +172,10 @@ export default function LandingPage({ onNavigate, userRole, onSetRole }: Props) 
 
                     <button
                       onClick={() => {
-                        onNavigate('login-distributor');
+                        onSetRole('distributor');
                         setShowLoginDropdown(false);
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 hover:text-blue-900 transition-colors flex items-start gap-2.5"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 hover:text-blue-900 transition-colors flex items-start gap-2.5 cursor-pointer"
                     >
                       <span className="text-lg bg-blue-100 text-blue-800 p-1.5 rounded-lg shrink-0">🚚</span>
                       <div>
@@ -186,10 +186,10 @@ export default function LandingPage({ onNavigate, userRole, onSetRole }: Props) 
 
                     <button
                       onClick={() => {
-                        onNavigate('login-customer');
+                        onSetRole('customer');
                         setShowLoginDropdown(false);
                       }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 text-slate-800 hover:text-purple-900 transition-colors flex items-start gap-2.5"
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 text-slate-800 hover:text-purple-900 transition-colors flex items-start gap-2.5 cursor-pointer"
                     >
                       <span className="text-lg bg-purple-100 text-purple-800 p-1.5 rounded-lg shrink-0">🛍️</span>
                       <div>
@@ -206,7 +206,7 @@ export default function LandingPage({ onNavigate, userRole, onSetRole }: Props) 
                         onNavigate('register');
                         setShowLoginDropdown(false);
                       }}
-                      className="text-xs font-black text-emerald-700 hover:underline"
+                      className="text-xs font-black text-emerald-700 hover:underline cursor-pointer"
                     >
                       Daftar Akun &rarr;
                     </button>

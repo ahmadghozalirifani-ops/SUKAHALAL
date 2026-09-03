@@ -20,6 +20,12 @@ export interface PageProps {
 const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => {
   const { t } = useTranslation();
   const [guestScanQR, setGuestScanQR] = useState<string | null>(null);
+  const [dashToast, setDashToast] = useState<string | null>(null);
+
+  const showDashToast = (msg: string) => {
+    setDashToast(msg);
+    setTimeout(() => setDashToast(null), 3000);
+  };
 
   const renderGuestDashboard = () => (
     <div className="w-full min-h-screen bg-[#fafcfb] font-sans text-slate-800">
@@ -66,19 +72,19 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
           {/* Quick Entry Portals */}
           <div className="flex flex-wrap gap-2.5 justify-center pt-3">
             <button 
-              onClick={() => onNavigate('login-seller')} 
+              onClick={() => onSetRole('seller')} 
               className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>🏪</span> Masuk sebagai Penjual UMKM
             </button>
             <button 
-              onClick={() => onNavigate('login-distributor')} 
+              onClick={() => onSetRole('distributor')} 
               className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>🚚</span> Masuk sebagai Distributor Logistik
             </button>
             <button 
-              onClick={() => onNavigate('login-customer')} 
+              onClick={() => onSetRole('customer')} 
               className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>🛍️</span> Masuk sebagai Pembeli
@@ -484,7 +490,7 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
                 </div>
                 <p className="text-slate-600 text-[11px]">Mitra: <strong>Halal Mart Fatmawati</strong> (50 Pouch Rendang Suwir)</p>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={() => alert('Pesanan disetujui! Segel barcode EAN-13 dicetak.')} className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">
+                  <button onClick={() => showDashToast('Label Barcode EAN-13 dicetak dan pesanan disetujui!')} className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">
                     Terima & Cetak Label
                   </button>
                 </div>
@@ -497,7 +503,7 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
                 </div>
                 <p className="text-slate-600 text-[11px]">Pembeli: <strong>Nadya Putri (Jakarta)</strong> (2 Pouch Rendang Sapi)</p>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={() => alert('Diserahkan ke Kurir Pos Logistik Halal!')} className="flex-1 bg-slate-900 hover:bg-black text-white py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">
+                  <button onClick={() => showDashToast('Kurir Pos Logistik Halal dipanggil untuk serah terima paket!')} className="flex-1 bg-slate-900 hover:bg-black text-white py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">
                     Panggil Kurir Halal
                   </button>
                 </div>
@@ -654,7 +660,7 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
               </div>
             </div>
 
-            <button onClick={() => alert('Membuka formulir checklist pencucian wadah angkut...')} className="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer">
+            <button onClick={() => onNavigate('verification')} className="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer">
               Input Form Sanitasi Truk Baru &rarr;
             </button>
           </div>
@@ -816,7 +822,7 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
                   <span className="font-bold text-slate-900 block">Rendang Daging Sapi Suwir</span>
                   <span className="text-[10px] text-slate-500 font-mono">ID32110000123450223</span>
                 </div>
-                <button onClick={() => alert('Mengunduh e-Sertifikat BPJPH resmi...')} className="text-emerald-700 font-bold hover:underline text-[11px] cursor-pointer">
+                <button onClick={() => showDashToast('e-Sertifikat BPJPH resmi (ID32110000123450223) berhasil diunduh!')} className="text-emerald-700 font-bold hover:underline text-[11px] cursor-pointer">
                   Unduh PDF ↓
                 </button>
               </div>
@@ -826,7 +832,7 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
                   <span className="font-bold text-slate-900 block">Kopi Arabika Gayo Organik</span>
                   <span className="text-[10px] text-slate-500 font-mono">ID11110000889920124</span>
                 </div>
-                <button onClick={() => alert('Mengunduh e-Sertifikat BPJPH resmi...')} className="text-emerald-700 font-bold hover:underline text-[11px] cursor-pointer">
+                <button onClick={() => showDashToast('e-Sertifikat BPJPH resmi (ID11110000889920124) berhasil diunduh!')} className="text-emerald-700 font-bold hover:underline text-[11px] cursor-pointer">
                   Unduh PDF ↓
                 </button>
               </div>
@@ -851,6 +857,11 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
           onClose={() => setGuestScanQR(null)} 
           productId={guestScanQR || '1'} 
         />
+        {dashToast && (
+          <div className="fixed top-20 right-6 z-50 bg-slate-950 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl border border-emerald-500/40 animate-fade-in flex items-center gap-2">
+            <span>✨</span> {dashToast}
+          </div>
+        )}
       </>
     );
   }
@@ -862,11 +873,17 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
       <AppSidebar onNavigate={onNavigate} currentRoute="dashboard" userRole={userRole} />
       <div className={`flex-1 flex flex-col ${roleThemeColor}`}>
         <AppHeader 
+           onNavigate={onNavigate}
            userRole={userRole} 
            onSetRole={onSetRole} 
            breadcrumbs={[{ label: t('breadcrumbs.dashboard', 'Dashboard') }]} 
         />
         <main className="flex-1 overflow-y-auto p-6">
+          {dashToast && (
+            <div className="fixed top-20 right-6 z-50 bg-slate-950 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl border border-emerald-500/40 animate-fade-in flex items-center gap-2">
+              <span>✨</span> {dashToast}
+            </div>
+          )}
           {userRole === 'seller' && renderSellerDashboard()}
           {userRole === 'distributor' && renderDistributorDashboard()}
           {userRole === 'customer' && renderCustomerDashboard()}

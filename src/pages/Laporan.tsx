@@ -15,6 +15,7 @@ interface Props {
 export default function Laporan({ onNavigate, userRole, onSetRole }: Props) {
   const { t } = useTranslation();
   const [period, setPeriod] = useState('Bulanan');
+  const [exportToast, setExportToast] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -40,10 +41,22 @@ export default function Laporan({ onNavigate, userRole, onSetRole }: Props) {
                 </button>
               ))}
             </div>
-            <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center shadow-sm">
+            <button 
+              onClick={() => {
+                setExportToast(true);
+                setTimeout(() => setExportToast(false), 3000);
+              }}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center shadow-sm cursor-pointer"
+            >
               📄 {t('reports.export_pdf')}
             </button>
           </div>
+
+          {exportToast && (
+            <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl animate-fade-in flex items-center gap-2">
+              <span>📄</span> Laporan periode {period} berhasil diekspor ke format PDF resmi!
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIWidget title={userRole === 'distributor' ? t('reports.delivery_success') : t('reports.total_revenue')} value={userRole === 'distributor' ? "98.5%" : "Rp 45.2Jt"} trend="+12%" status="good" />

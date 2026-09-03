@@ -17,7 +17,7 @@ export default function Notifikasi({ onNavigate, userRole, onSetRole }: PageProp
 
   const filters = ['Semua', 'Verifikasi', 'Pesanan', 'Stok', 'Dokumen', 'Marketing', 'Sistem'];
 
-  const notifications = [
+  const initialNotifications = [
     { id: 1, type: 'Verifikasi', title: 'Sertifikat Halal Disetujui', desc: 'Pengajuan sertifikat halal BPJPH Anda telah disetujui. Berlaku hingga 2028.', time: '10 menit yang lalu', read: false, icon: '✅' },
     { id: 2, type: 'Pesanan', title: 'Pesanan Baru #ORD-0921', desc: 'Pembeli PT Maju Jaya telah membuat pesanan baru sebesar Rp 2.500.000.', time: '1 jam yang lalu', read: false, icon: '🛒' },
     { id: 3, type: 'Stok', title: 'Stok Menipis: Daging Sapi Premium', desc: 'Sisa stok tinggal 5 kg. Segera lakukan restock untuk menghindari kehabisan.', time: '3 jam yang lalu', read: false, icon: '⚠️' },
@@ -30,9 +30,12 @@ export default function Notifikasi({ onNavigate, userRole, onSetRole }: PageProp
     { id: 10, type: 'Dokumen', title: 'Dokumen Berhasil Diunggah', desc: 'Hasil Uji Lab Kuartal 3 berhasil disimpan ke sistem blockchain.', time: '2 minggu yang lalu', read: true, icon: '🔗' },
   ];
 
+  const [notifList, setNotifList] = useState(initialNotifications);
+  const unreadCount = notifList.filter(n => !n.read).length;
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="notifikasi" />
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />
         
@@ -48,7 +51,7 @@ export default function Notifikasi({ onNavigate, userRole, onSetRole }: PageProp
                 <span className="text-xl">📩</span>
                 <div>
                   <p className="text-xs text-gray-500">Belum Dibaca</p>
-                  <p className="font-bold text-gray-800">3</p>
+                  <p className="font-bold text-gray-800">{unreadCount}</p>
                 </div>
               </div>
               <div className="bg-white px-4 py-2 rounded-lg border border-gray-200 flex items-center gap-2">
@@ -81,14 +84,21 @@ export default function Notifikasi({ onNavigate, userRole, onSetRole }: PageProp
                   </button>
                 ))}
               </div>
-              <button className="text-sm font-medium text-green-600 whitespace-nowrap hover:underline">
+              <button 
+                onClick={() => setNotifList(prev => prev.map(n => ({ ...n, read: true })))}
+                className="text-sm font-medium text-green-600 whitespace-nowrap hover:underline cursor-pointer"
+              >
                 {t('Tandai Semua Dibaca')}
               </button>
             </div>
 
             <div className="divide-y divide-gray-100">
-              {notifications.filter(n => filter === 'Semua' || n.type === filter).map(notif => (
-                <div key={notif.id} className={`p-4 flex gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${!notif.read ? 'bg-green-50/30 border-l-4 border-l-green-500' : 'border-l-4 border-l-transparent'}`}>
+              {notifList.filter(n => filter === 'Semua' || n.type === filter).map(notif => (
+                <div 
+                  key={notif.id} 
+                  onClick={() => setNotifList(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n))}
+                  className={`p-4 flex gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${!notif.read ? 'bg-green-50/30 border-l-4 border-l-green-500' : 'border-l-4 border-l-transparent'}`}
+                >
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0 ${!notif.read ? 'bg-green-100' : 'bg-gray-100'}`}>
                     {notif.icon}
                   </div>

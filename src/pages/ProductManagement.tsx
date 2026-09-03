@@ -60,6 +60,7 @@ export default function ProductManagement({ onNavigate, userRole, onSetRole }: P
           breadcrumb="Dashboard > Kelola Produk"
           userRole={userRole} 
           onSetRole={onSetRole} 
+          onNavigate={onNavigate}
         />
         
         {/* KPI Mini-bar */}

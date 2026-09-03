@@ -68,7 +68,7 @@ export default function UploadDokumen({ onNavigate, userRole, onSetRole }: Props
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="upload-dokumen" />
       
       <main className="flex-1 flex flex-col overflow-hidden">
         <AppHeader 
@@ -76,6 +76,7 @@ export default function UploadDokumen({ onNavigate, userRole, onSetRole }: Props
           breadcrumb="Dashboard > Upload Dokumen"
           userRole={userRole} 
           onSetRole={onSetRole} 
+          onNavigate={onNavigate}
         />
         
         <div className="flex-1 overflow-y-auto p-6">
