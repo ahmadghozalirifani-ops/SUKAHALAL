@@ -1,195 +1,162 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import KPIWidget from '../components/KPIWidget';
+
+type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
 interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const revenueData = [12, 18, 15, 22, 28, 25, 30, 27, 35, 32, 38, 42]
-
-const topProducts = [
-  { name: 'Mi Instan Kari Ayam Halal', sold: 320, revenue: 'Rp 8.000.000', pct: 85 },
-  { name: 'Beras Premium Pandan Wangi 5kg', sold: 195, revenue: 'Rp 16.575.000', pct: 72 },
-  { name: 'Bumbu Dapur Rendang 200g', sold: 180, revenue: 'Rp 8.190.000', pct: 68 },
-  { name: 'Kecap Manis Organik 275ml', sold: 145, revenue: 'Rp 5.510.000', pct: 55 },
-  { name: 'Sambal Terasi Super 150ml', sold: 110, revenue: 'Rp 3.520.000', pct: 42 },
-]
-
-export default function Laporan({ onNavigate }: Props) {
-  const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<'pendapatan' | 'produk' | 'pelanggan' | 'kepatuhan'>('pendapatan')
-  const [period, setPeriod] = useState('2026')
-
-  const maxRevenue = Math.max(...revenueData)
+export default function Laporan({ onNavigate, userRole, onSetRole }: Props) {
+  const { t } = useTranslation();
+  const [period, setPeriod] = useState('Bulanan');
 
   return (
-    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">S</div>
-            <span className="font-extrabold text-green-700">SUKAHALAL</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <select value={period} onChange={e => setPeriod(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white">
-              {['2026', '2025', '2024'].map(y => <option key={y}>{y}</option>)}
-            </select>
-            <button onClick={() => onNavigate('dashboard')} className="text-sm text-gray-500 hover:text-gray-700 font-medium cursor-pointer">← Dashboard</button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-extrabold text-gray-900">Laporan & Analitik Kinerja Halal</h1>
-          <p className="text-sm text-gray-500">Evaluasi penjualan, produk terlaris, dan tingkat kepatuhan sertifikasi syariah</p>
-        </div>
-
-        {/* KPI */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total Pendapatan', value: 'Rp 124.5 Jt', sub: '+18% vs tahun lalu', color: 'text-green-600', icon: '💰' },
-            { label: 'Total Pesanan', value: '1.284', sub: '+23% vs tahun lalu', color: 'text-blue-600', icon: '🛒' },
-            { label: 'Produk Terjual', value: '4.820', sub: '+15% vs tahun lalu', color: 'text-amber-600', icon: '📦' },
-            { label: 'Kepatuhan Halal (OMAX)', value: '96.4%', sub: 'Skor Kepatuhan Sangat Baik', color: 'text-teal-600', icon: '🛡️' },
-          ].map((k, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <div className="text-2xl mb-1">{k.icon}</div>
-              <div className={`text-xl font-extrabold ${k.color}`}>{k.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5 font-medium">{k.label}</div>
-              <div className="text-xs text-green-500 mt-0.5">{k.sub}</div>
+    <div className="flex h-screen overflow-hidden">
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="laporan" />
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        <AppHeader 
+          onNavigate={onNavigate} 
+          userRole={userRole} 
+          onSetRole={onSetRole}
+          breadcrumbs={[{ label: t('breadcrumbs.dashboard'), page: 'dashboard' }, { label: t('breadcrumbs.reports') }]}
+        />
+        
+        <div className="p-6 max-w-7xl mx-auto space-y-8">
+          
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-1 bg-white p-1 rounded-lg border border-gray-200">
+              {['Harian', 'Mingguan', 'Bulanan', 'Tahunan'].map(p => (
+                <button 
+                  key={p} onClick={() => setPeriod(p)}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium ${period === p ? 'bg-green-50 text-green-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 mb-6">
-          {[
-            { id: 'pendapatan', label: 'Pendapatan' },
-            { id: 'produk', label: 'Produk Terlaris' },
-            { id: 'pelanggan', label: 'Pelanggan' },
-            { id: 'kepatuhan', label: 'Kepatuhan Halal (OMAX)' },
-          ].map(t => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as typeof activeTab)}
-              className={`px-5 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
-                activeTab === t.id
-                  ? 'text-green-600 border-b-2 border-green-600 -mb-px'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t.label}
+            <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center shadow-sm">
+              📄 {t('reports.export_pdf')}
             </button>
-          ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <KPIWidget title={userRole === 'distributor' ? t('reports.delivery_success') : t('reports.total_revenue')} value={userRole === 'distributor' ? "98.5%" : "Rp 45.2Jt"} trend="+12%" status="good" />
+            <KPIWidget title={userRole === 'customer' ? t('reports.total_purchases') : t('reports.total_orders')} value="156" trend="+5%" status="good" />
+            <KPIWidget title={t('reports.top_product')} value="Rendang Sapi" trend="" status="neutral" />
+            <KPIWidget title={t('reports.retention')} value="64%" trend="+2%" status="good" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Revenue Chart */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="font-bold text-gray-900 mb-6">{t('reports.revenue_chart')}</h3>
+              <div className="h-64 flex items-end justify-between space-x-4">
+                {[
+                  { m: 'Jan', v: 40 }, { m: 'Feb', v: 60 }, { m: 'Mar', v: 45 }, 
+                  { m: 'Apr', v: 80 }, { m: 'May', v: 70 }, { m: 'Jun', v: 95 }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center group">
+                    <div className="w-full bg-green-100 group-hover:bg-green-500 rounded-t-md relative transition-colors" style={{ height: `${item.v}%` }}>
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10">
+                        Rp {(item.v * 0.5).toFixed(1)}Jt
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500 mt-2">{item.m}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Compliance & Performance Gauges */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-8 flex flex-col justify-center">
+              <div className="text-center">
+                <h3 className="font-bold text-gray-900 mb-4">{t('reports.halal_compliance')}</h3>
+                <div className="relative w-32 h-32 mx-auto rounded-full bg-gray-100 flex items-center justify-center" style={{ background: `conic-gradient(#16a34a 87%, #f3f4f6 0)` }}>
+                  <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center flex-col">
+                    <span className="text-2xl font-bold text-green-600">87%</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="font-bold text-gray-900 mb-4">{t('reports.supply_chain_score')}</h3>
+                <div className="relative w-32 h-32 mx-auto rounded-full bg-gray-100 flex items-center justify-center" style={{ background: `conic-gradient(#2563eb 91%, #f3f4f6 0)` }}>
+                  <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center flex-col">
+                    <span className="text-2xl font-bold text-blue-600">91%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Products Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 className="font-bold text-gray-900 mb-4">{t('reports.top_products')}</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-gray-500 text-sm border-b border-gray-100">
+                      <th className="pb-3 font-medium">Rank</th>
+                      <th className="pb-3 font-medium">Produk</th>
+                      <th className="pb-3 font-medium">Terjual</th>
+                      <th className="pb-3 font-medium">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {[
+                      { rank: 1, name: 'Rendang Sapi', sold: 450, rev: '33.7Jt' },
+                      { rank: 2, name: 'Madu Hutan', sold: 312, rev: '78.0Jt' },
+                      { rank: 3, name: 'Kopi Arabika', sold: 280, rev: '8.4Jt' },
+                      { rank: 4, name: 'Kurma Ajwa', sold: 195, rev: '23.4Jt' },
+                      { rank: 5, name: 'Teh Hijau', sold: 150, rev: '2.8Jt' },
+                    ].map(item => (
+                      <tr key={item.rank}>
+                        <td className="py-3 font-bold text-gray-400">#{item.rank}</td>
+                        <td className="py-3 font-medium text-gray-900">{item.name}</td>
+                        <td className="py-3 text-gray-600">{item.sold}</td>
+                        <td className="py-3 text-green-600 font-medium">Rp {item.rev}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* OMAX Matrix */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <h3 className="font-bold text-gray-900 mb-4">{t('reports.omax_matrix')}</h3>
+              <p className="text-sm text-gray-500 mb-4">Objective Matrix (OMAX) Supply Chain Performance</p>
+              <div className="space-y-3">
+                {[
+                  { dim: 'Quality (Kualitas Halal)', score: 9.5, max: 10, color: 'bg-green-500' },
+                  { dim: 'Delivery (Pengiriman)', score: 8.2, max: 10, color: 'bg-blue-500' },
+                  { dim: 'Flexibility (Fleksibilitas)', score: 7.5, max: 10, color: 'bg-amber-500' },
+                  { dim: 'Responsiveness (Respons)', score: 8.8, max: 10, color: 'bg-purple-500' },
+                  { dim: 'Cost (Efisiensi Biaya)', score: 9.0, max: 10, color: 'bg-cyan-500' },
+                ].map(item => (
+                  <div key={item.dim} className="flex items-center">
+                    <span className="w-1/2 text-sm font-medium text-gray-700 truncate pr-2">{item.dim}</span>
+                    <div className="w-1/2 flex items-center space-x-3">
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color}`} style={{ width: `${(item.score/item.max)*100}%` }}></div>
+                      </div>
+                      <span className="text-sm font-bold text-gray-900 w-8 text-right">{item.score}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
-
-        {activeTab === 'pendapatan' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 className="font-bold text-gray-900 mb-5 text-sm">Pendapatan Bulanan {period}</h3>
-            {/* Bar chart */}
-            <div className="flex items-end gap-2 h-48 mb-3">
-              {revenueData.map((val, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[9px] text-gray-400 font-medium">{val}M</span>
-                  <div
-                    className="w-full bg-green-500 rounded-t-md transition-all hover:bg-green-600 cursor-pointer"
-                    style={{ height: `${(val / maxRevenue) * 180}px` }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {months.map(m => (
-                <div key={m} className="flex-1 text-center text-[9px] text-gray-400">{m}</div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'produk' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 className="font-bold text-gray-900 mb-5 text-sm">Top 5 Produk Terlaris</h3>
-            <div className="space-y-4">
-              {topProducts.map((p, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                      <span className="text-sm font-medium text-gray-800 truncate max-w-60">{p.name}</span>
-                    </div>
-                    <div className="text-right shrink-0 ml-2">
-                      <div className="text-xs font-bold text-gray-800">{p.sold} terjual</div>
-                      <div className="text-xs text-green-600">{p.revenue}</div>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${p.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'pelanggan' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 className="font-bold text-gray-900 mb-5 text-sm">Segmen Pelanggan</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Pelanggan Baru', value: 243, icon: '🆕', color: 'bg-blue-50 border-blue-200', textColor: 'text-blue-600' },
-                { label: 'Pelanggan Setia', value: 189, icon: '🏆', color: 'bg-amber-50 border-amber-200', textColor: 'text-amber-600' },
-                { label: 'Total Pelanggan', value: 432, icon: '👥', color: 'bg-green-50 border-green-200', textColor: 'text-green-600' },
-              ].map(s => (
-                <div key={s.label} className={`${s.color} border rounded-2xl p-4 text-center`}>
-                  <div className="text-3xl mb-2">{s.icon}</div>
-                  <div className={`text-3xl font-extrabold ${s.textColor}`}>{s.value}</div>
-                  <div className="text-sm text-gray-600 mt-1">{s.label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 p-4 bg-gray-50 rounded-xl">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Retensi Pelanggan</div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '73%' }} />
-                </div>
-                <span className="text-sm font-bold text-green-600">73%</span>
-              </div>
-              <div className="text-xs text-gray-400 mt-1">73% pelanggan kembali berbelanja produk halal</div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'kepatuhan' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 className="font-bold text-gray-900 mb-2 text-sm">Matriks Pengukuran Kinerja Halal (Model OMAX)</h3>
-            <p className="text-xs text-gray-500 mb-4">Pengukuran performa rantai pasok halal berdasarkan rasio bahan baku, sanitasi, dan sertifikasi BPJPH.</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                <div className="text-xs text-green-700 font-semibold mb-1">Integritas Bahan Baku</div>
-                <div className="text-2xl font-extrabold text-green-800">98.5%</div>
-                <p className="text-[11px] text-gray-600 mt-1">Seluruh pemasok memiliki sertifikat halal terdaftar resmi.</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="text-xs text-blue-700 font-semibold mb-1">Kepatuhan Logistik & Segregasi</div>
-                <div className="text-2xl font-extrabold text-blue-800">95.2%</div>
-                <p className="text-[11px] text-gray-600 mt-1">Armada terbukti bebas kontaminasi non-halal.</p>
-              </div>
-              <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                <div className="text-xs text-amber-700 font-semibold mb-1">Audit Berkala SJPH</div>
-                <div className="text-2xl font-extrabold text-amber-800">94.0%</div>
-                <p className="text-[11px] text-gray-600 mt-1">Implementasi 5 kriteria SJPH BPJPH berjalan konsisten.</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
-  )
+  );
 }

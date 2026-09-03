@@ -1,337 +1,240 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import type { UserRole } from '../App'
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import AppHeader from '../components/AppHeader';
+import AppSidebar from '../components/AppSidebar';
+import TrafficLightStatus, { type TLSStatus } from '../components/TrafficLightStatus';
 
-interface Props {
-  onNavigate: (page: string) => void
-  userRole: UserRole
-  onSetRole: (role: UserRole) => void
+export type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
+
+export interface PageProps {
+  onNavigate: (page: string) => void;
+  userRole: UserRole;
+  onSetRole: (role: UserRole) => void;
 }
 
-const sideNav = [
-  { id: 'dashboard', label: 'Dasbor', icon: '⊞' },
-  { id: 'supply-chain', label: 'Manajemen Rantai Pasok', icon: '🔗' },
-  { id: 'verification', label: 'Pusat Verifikasi', icon: '🛡️' },
-  { id: 'inventaris', label: 'Inventaris', icon: '📦' },
-  { id: 'pesanan', label: 'Pesanan', icon: '🛒' },
-  { id: 'laporan', label: 'Laporan', icon: '📊' },
-  { id: 'settings', label: 'Pengaturan', icon: '⚙️' },
-]
+const SupplyChain: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => {
+  const { t } = useTranslation();
+  const [activeNode, setActiveNode] = useState<number | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-type NodeStatus = 'Aktif' | 'Pending' | 'Perlu Perhatian'
+  const nodes = [
+    { id: 1, name: 'Supplier', icon: '🌾', status: 'green' as TLSStatus, cert: 'BPJPH-2023-A1', temp: '25°C', hum: '60%', seal: 'Aman' },
+    { id: 2, name: 'Manufacturer', icon: '🏭', status: 'green' as TLSStatus, cert: 'BPJPH-2023-B2', temp: '20°C', hum: '55%', seal: 'Aman' },
+    { id: 3, name: 'Packager', icon: '📦', status: 'yellow' as TLSStatus, cert: 'BPJPH-2022-C3', temp: '22°C', hum: '50%', seal: 'Aman' },
+    { id: 4, name: 'Distributor', icon: '🚚', status: 'green' as TLSStatus, cert: 'BPJPH-2023-D4', temp: '4°C', hum: '80%', seal: 'Aman' },
+    { id: 5, name: 'Retailer', icon: '🏪', status: 'red' as TLSStatus, cert: 'Tidak Valid', temp: '25°C', hum: '65%', seal: 'Rusak' },
+  ];
 
-interface ChainNode {
-  id: string
-  role: string
-  name: string
-  location: string
-  certified: boolean
-  status: NodeStatus
-  since: string
-  temp?: string
-  seal?: string
-}
+  const risks = [
+    { loc: 'RPH (Slaughterhouse)', type: 'Kontaminasi Silang', level: 'High', measure: 'Pemisahan area basah & kering, alat khusus', status: 'Implemented' },
+    { loc: 'Raw Material Storage', type: 'Suhu tidak stabil', level: 'Medium', measure: 'IoT Temperature Monitoring', status: 'Active' },
+    { loc: 'Production Floor', type: 'Campuran bahan non-halal', level: 'High', measure: 'SOP Sterilisasi & Pengecekan BOM', status: 'Implemented' },
+    { loc: 'Packaging Area', type: 'Kemasan tidak food grade', level: 'Low', measure: 'Sertifikasi supplier kemasan', status: 'Active' },
+    { loc: 'Distribution Truck', type: 'Segel rusak di perjalanan', level: 'Medium', measure: 'Smart Lock & GPS Tracking', status: 'Warning' },
+  ];
 
-const chainNodes: ChainNode[] = [
-  { id: '1', role: 'Supplier', name: 'PT Berkah Agro', location: 'Jawa Tengah', certified: true, status: 'Aktif', since: 'Jan 2023', temp: '24°C', seal: 'Aman' },
-  { id: '2', role: 'Manufacturer', name: 'PT Berkah Foods', location: 'Jakarta', certified: true, status: 'Aktif', since: 'Jan 2023', temp: '18°C', seal: 'Tervalidasi' },
-  { id: '3', role: 'Packager', name: 'CV Kemasan Berkah', location: 'Tangerang', certified: true, status: 'Aktif', since: 'Mar 2023', temp: '22°C', seal: 'Tersegel Halal' },
-  { id: '4', role: 'Distributor', name: 'PT Distribusi Halal', location: 'Jakarta', certified: true, status: 'Perlu Perhatian', since: 'Jun 2023', temp: '4°C (Cold Chain)', seal: 'Sensor Aktif' },
-  { id: '5', role: 'Retailer', name: 'Berbagai Toko Mitra', location: 'Seluruh Indonesia', certified: false, status: 'Aktif', since: 'Agu 2023', temp: 'Suhu Ruang', seal: 'Utuh' },
-]
-
-const statusColors: Record<NodeStatus, string> = {
-  'Aktif': 'bg-green-100 text-green-700',
-  'Pending': 'bg-amber-100 text-amber-700',
-  'Perlu Perhatian': 'bg-red-100 text-red-600',
-}
-
-const roleColors: Record<string, string> = {
-  'Supplier': 'bg-blue-600',
-  'Manufacturer': 'bg-teal-600',
-  'Packager': 'bg-cyan-500',
-  'Distributor': 'bg-green-600',
-  'Retailer': 'bg-emerald-500',
-}
-
-export default function SupplyChain({ onNavigate, userRole }: Props) {
-  const { t } = useTranslation()
-  const [activeNav, setActiveNav] = useState('supply-chain')
-  const [selectedNode, setSelectedNode] = useState<ChainNode | null>(null)
-  const [showAddMember, setShowAddMember] = useState(false)
-  const [newMemberName, setNewMemberName] = useState('')
-  const [newMemberRole, setNewMemberRole] = useState('Supplier')
-  const [newMemberLoc, setNewMemberLoc] = useState('')
-  const [memberAdded, setMemberAdded] = useState(false)
-  const [showFmea, setShowFmea] = useState(false)
-
-  function handleNav(id: string) {
-    setActiveNav(id)
-    if (id !== 'supply-chain') onNavigate(id)
-  }
-
-  function handleAddMember(e: React.FormEvent) {
-    e.preventDefault()
-    if (!newMemberName || !newMemberLoc) return
-    chainNodes.push({
-      id: String(chainNodes.length + 1),
-      role: newMemberRole,
-      name: newMemberName,
-      location: newMemberLoc,
-      certified: true,
-      status: 'Aktif',
-      since: 'Hari ini',
-    })
-    setMemberAdded(true)
-    setTimeout(() => {
-      setMemberAdded(false)
-      setShowAddMember(false)
-      setNewMemberName('')
-      setNewMemberLoc('')
-    }, 1500)
-  }
+  const themeColor = userRole === 'distributor' ? 'blue' : 'green';
 
   return (
-    <div className="flex h-screen bg-gray-50 font-['Inter',sans-serif] overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-56 bg-white border-r border-gray-100 flex flex-col shrink-0">
-        <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-100 cursor-pointer" onClick={() => onNavigate('landing')}>
-          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">S</div>
-          <span className="font-extrabold text-green-700 text-sm">SUKAHALAL</span>
-        </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {sideNav.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                activeNav === item.id
-                  ? 'bg-teal-50 text-teal-700 font-semibold border-l-4 border-teal-600 rounded-l-none pl-2'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-            >
-              <span className="text-base w-5 text-center">{item.icon}</span>
-              <span className="text-left text-xs">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-              <button onClick={() => onNavigate('dashboard')} className="hover:text-gray-600 cursor-pointer">Dashboard</button>
-              <span>›</span>
-              <span className="text-gray-700 font-medium">Manajemen Rantai Pasok</span>
-            </div>
-            <h1 className="text-xl font-extrabold text-gray-900">Manajemen Rantai Pasok Halal</h1>
-            <p className="text-xs text-gray-500">Pantau seluruh jalur pasok halal dari hulu ke hilir dengan jaminan integritas syariah</p>
+    <div className="flex h-screen overflow-hidden">
+      <AppSidebar onNavigate={onNavigate} currentPage="supply-chain" userRole={userRole} />
+      <div className="flex-1 flex flex-col bg-gray-50">
+        <AppHeader
+           onNavigate={onNavigate}
+           userRole={userRole}
+           breadcrumbs={[
+             { label: t('breadcrumbs.dashboard', 'Dashboard'), page: 'dashboard' },
+             { label: t('supplyChain.title', 'Rantai Pasok') }
+           ]}
+        />
+
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex justify-between items-center mb-4">
+             <h1 className="text-2xl font-bold text-gray-800">{t('supplyChain.title', 'Manajemen Rantai Pasok Halal')}</h1>
+             <button onClick={() => setShowAddModal(true)} className={`bg-${themeColor}-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-${themeColor}-700 transition-colors`}>
+               + Tambah Anggota
+             </button>
           </div>
-          <button onClick={() => setShowFmea(!showFmea)} className="border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs">
-            <span>🛡️</span> {showFmea ? 'Sembunyikan Peta Risiko' : 'Peta Risiko Halal (FMEA)'}
-          </button>
-        </div>
 
-        {/* FMEA & IoT Risk Map Collapsible */}
-        {showFmea && (
-          <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-5 mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                <span>🛡️</span> Critical Control Points (CCP) & Mitigasi Risiko Halal
-              </h3>
-              <span className="text-[11px] text-gray-400">Analisis FMEA Halal Supply Chain</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 bg-green-50 rounded-xl border border-green-200">
-                <div className="font-bold text-green-900 mb-1">1. Titik Hulu (Petani/RPH)</div>
-                <p className="text-gray-600">Risiko: Penyembelihan & bahan pakan tidak halal.</p>
-                <div className="mt-2 font-semibold text-green-700">✓ Kontrol: Audit Juleha & sertifikat BPJPH.</div>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="font-bold text-blue-900 mb-1">2. Produksi & Pengemasan</div>
-                <p className="text-gray-600">Risiko: Kontaminasi silang zat najis pada mesin.</p>
-                <div className="mt-2 font-semibold text-blue-700">✓ Kontrol: Sanitasi syariah & segel RFID.</div>
-              </div>
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                <div className="font-bold text-amber-900 mb-1">3. Distribusi & Cold-Chain</div>
-                <p className="text-gray-600">Risiko: Pencampuran kargo dalam satu kontainer.</p>
-                <div className="mt-2 font-semibold text-amber-700">✓ Kontrol: IoT Sensor suhu & segel GPS.</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Visual chain */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-          <h2 className="font-bold text-gray-800 text-sm mb-5">Visualisasi Alur Rantai Pasok Terintegrasi</h2>
-          <div className="flex items-center gap-0 overflow-x-auto pb-2">
-            {chainNodes.map((node, i) => (
-              <div key={node.id} className="flex items-center">
-                <button
-                  onClick={() => setSelectedNode(selectedNode?.id === node.id ? null : node)}
-                  className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all min-w-28 cursor-pointer ${
-                    selectedNode?.id === node.id
-                      ? 'border-green-500 bg-green-50 shadow-md'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                  }`}
-                >
-                  <div className={`w-10 h-10 ${roleColors[node.role]} rounded-xl flex items-center justify-center text-white font-bold text-xs`}>
-                    {node.role[0]}
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{node.role}</div>
-                    <div className="text-xs font-semibold text-gray-800 leading-tight mt-0.5">{node.name}</div>
-                    <div className="mt-1">
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${statusColors[node.status]}`}>
-                        {node.status}
-                      </span>
+          {/* Interactive Flow */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+             <h2 className="text-lg font-bold text-gray-800 mb-12 text-center">Visualisasi Rantai Pasok Terintegrasi (IoT & TLS)</h2>
+             
+             <div className="relative flex justify-between items-center max-w-4xl mx-auto mb-8">
+                <div className="absolute h-1 bg-gray-200 left-0 right-0 top-1/2 -translate-y-1/2 z-0"></div>
+                {nodes.map((node, i) => (
+                  <div key={node.id} className="relative z-10 flex flex-col items-center">
+                    <button 
+                       onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
+                       className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-md border-4 transition-transform hover:scale-110 ${activeNode === node.id ? `border-${themeColor}-500 bg-${themeColor}-50` : 'border-white bg-white'} relative`}
+                    >
+                       {node.icon}
+                       <div className="absolute -top-1 -right-1">
+                          <TrafficLightStatus status={node.status} />
+                       </div>
+                    </button>
+                    <div className="mt-3 text-center">
+                       <p className="font-bold text-gray-800 text-sm">{node.name}</p>
+                       <p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1">{node.cert}</p>
                     </div>
                   </div>
-                </button>
-                {i < chainNodes.length - 1 && (
-                  <div className="flex items-center mx-1">
-                    <div className="w-8 h-0.5 bg-green-300" />
-                    <span className="text-green-400 text-xs">▸</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Detail panel */}
-          {selectedNode && (
-            <div className="mt-5 bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className={`inline-block text-white text-xs font-bold px-2.5 py-1 rounded-lg mb-2 ${roleColors[selectedNode.role]}`}>
-                    {selectedNode.role}
-                  </div>
-                  <h3 className="font-bold text-gray-900">{selectedNode.name}</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                    <span>📍 Lokasi: {selectedNode.location}</span>
-                    <span>•</span>
-                    <span>🌡️ Sensor: {selectedNode.temp}</span>
-                    <span>•</span>
-                    <span>🔒 Status Segel: {selectedNode.seal}</span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[selectedNode.status]}`}>{selectedNode.status}</span>
-                    {selectedNode.certified && (
-                      <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">✅ Halal Tayiban Resmi</span>
-                    )}
-                    <span className="text-xs text-gray-400">Bergabung: {selectedNode.since}</span>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedNode(null)} className="text-gray-400 hover:text-gray-600 text-sm cursor-pointer">✕</button>
-              </div>
-              <div className="flex gap-2 mt-3">
-                {selectedNode.role === 'Supplier' && (
-                  <button onClick={() => onNavigate('supplier-profile')} className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer">
-                    Lihat Profil Pemasok
-                  </button>
-                )}
-                <button onClick={() => onNavigate('upload-dokumen')} className="border border-gray-300 text-gray-600 hover:bg-gray-100 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer">
-                  Lihat Dokumen Sertifikasi
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-gray-900 text-sm">Anggota Rantai Pasok Terdaftar</h2>
-            <button onClick={() => setShowAddMember(true)} className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-xs">
-              + Tambah Anggota
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  {['Peran', 'Nama Perusahaan', 'Lokasi', 'Sertifikasi', 'Status', 'Bergabung', 'Aksi'].map(h => (
-                    <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {chainNodes.map(node => (
-                  <tr key={node.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-block text-white text-[11px] font-bold px-2.5 py-0.5 rounded-lg ${roleColors[node.role]}`}>
-                        {node.role}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 font-medium text-gray-800">{node.name}</td>
-                    <td className="px-5 py-3.5 text-gray-500 text-xs">{node.location}</td>
-                    <td className="px-5 py-3.5">
-                      {node.certified ? (
-                        <span className="text-green-600 font-semibold text-xs flex items-center gap-1">✅ Terverifikasi</span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">Belum Ada</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[node.status]}`}>{node.status}</span>
-                    </td>
-                    <td className="px-5 py-3.5 text-gray-400 text-xs">{node.since}</td>
-                    <td className="px-5 py-3.5">
-                      <button onClick={() => setSelectedNode(node)} className="text-teal-600 hover:underline text-xs font-medium cursor-pointer">Detail</button>
-                    </td>
-                  </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+             </div>
 
-      {/* Add Member Modal */}
-      {showAddMember && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-extrabold text-gray-900 text-base">Tambah Anggota Rantai Pasok</h2>
-              <button onClick={() => setShowAddMember(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">✕</button>
-            </div>
-            {memberAdded ? (
-              <div className="text-center py-6">
-                <div className="text-4xl mb-2">✅</div>
-                <p className="font-bold text-gray-800 text-sm">Anggota Berhasil Ditambahkan!</p>
-              </div>
-            ) : (
-              <form onSubmit={handleAddMember} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Nama Perusahaan / Toko</label>
-                  <input type="text" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} required placeholder="Contoh: PT Sumber Pangan Halal"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Peran dalam Rantai Pasok</label>
-                  <select value={newMemberRole} onChange={e => setNewMemberRole(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white">
-                    {['Supplier', 'Manufacturer', 'Packager', 'Distributor', 'Retailer'].map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Lokasi</label>
-                  <input type="text" value={newMemberLoc} onChange={e => setNewMemberLoc(e.target.value)} required placeholder="Contoh: Surabaya, Jawa Timur"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowAddMember(false)} className="flex-1 border border-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-gray-50 cursor-pointer">Batal</button>
-                  <button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer shadow-sm">Simpan</button>
-                </div>
-              </form>
-            )}
+             {/* Node Details / IoT Panel */}
+             {activeNode && (
+               <div className={`bg-${themeColor}-50 border border-${themeColor}-100 rounded-xl p-6 max-w-4xl mx-auto animate-fade-in`}>
+                  {nodes.filter(n => n.id === activeNode).map(node => (
+                     <div key={node.id}>
+                        <div className="flex items-center gap-3 mb-4">
+                           <div className="text-4xl">{node.icon}</div>
+                           <div>
+                              <h3 className="font-bold text-gray-800 text-lg">Detail {node.name}</h3>
+                              <div className="flex items-center gap-2">Status: <TrafficLightStatus status={node.status} /> <span className="text-sm">{node.cert}</span></div>
+                           </div>
+                        </div>
+                        <h4 className="font-semibold text-gray-700 text-sm mb-3">📡 Data IoT Real-time</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
+                              <div className="text-xs text-gray-500 mb-1">Suhu Lingkungan</div>
+                              <div className="font-bold text-gray-800">{node.temp}</div>
+                           </div>
+                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
+                              <div className="text-xs text-gray-500 mb-1">Kelembapan</div>
+                              <div className="font-bold text-gray-800">{node.hum}</div>
+                           </div>
+                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
+                              <div className="text-xs text-gray-500 mb-1">Status Segel Fisik</div>
+                              <div className={`font-bold ${node.seal === 'Aman' ? 'text-green-600' : 'text-red-600'}`}>{node.seal}</div>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+             )}
           </div>
-        </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+             {/* Risk Map / FMEA */}
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
+                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">⚠️ Peta Risiko Halal (FMEA)</h2>
+                <table className="w-full text-left text-sm">
+                   <thead>
+                      <tr className="border-b border-gray-200 text-gray-500">
+                         <th className="pb-3 font-medium">Titik Kontrol (CCP)</th>
+                         <th className="pb-3 font-medium">Risiko</th>
+                         <th className="pb-3 font-medium">Level</th>
+                         <th className="pb-3 font-medium">Mitigasi</th>
+                      </tr>
+                   </thead>
+                   <tbody className="divide-y divide-gray-100">
+                      {risks.map((risk, i) => (
+                         <tr key={i} className="hover:bg-gray-50">
+                            <td className="py-3 font-medium text-gray-800">{risk.loc}</td>
+                            <td className="py-3 text-gray-600">{risk.type}</td>
+                            <td className="py-3">
+                               <span className={`px-2 py-1 rounded text-xs font-bold ${risk.level === 'High' ? 'bg-red-100 text-red-700' : risk.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                                  {risk.level}
+                               </span>
+                            </td>
+                            <td className="py-3 text-gray-600">{risk.measure}</td>
+                         </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
+
+             {/* SLA Section */}
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🤝 Service Level Agreement (SLA) Halal</h2>
+                <div className="space-y-4">
+                   <div className="p-4 rounded-xl border border-green-200 bg-green-50 flex justify-between items-center">
+                      <div>
+                         <h4 className="font-bold text-green-900">SLA Produsen - Distributor</h4>
+                         <p className="text-sm text-green-800">Menjaga suhu rantai dingin &lt; 4°C selama transit.</p>
+                      </div>
+                      <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Disetujui</span>
+                   </div>
+                   <div className="p-4 rounded-xl border border-gray-200 bg-white flex justify-between items-center">
+                      <div>
+                         <h4 className="font-bold text-gray-800">SLA Supplier - Produsen</h4>
+                         <p className="text-sm text-gray-500">Penyediaan sertifikat halal batch material setiap pengiriman.</p>
+                      </div>
+                      <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded">Menunggu Konfirmasi</span>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Member Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
+             <h2 className="text-lg font-bold text-gray-800 mb-4">Daftar Anggota Rantai Pasok</h2>
+             <table className="w-full text-left text-sm">
+                <thead>
+                   <tr className="border-b border-gray-200 text-gray-500 bg-gray-50">
+                      <th className="py-3 px-4 font-medium rounded-tl-lg">Nama Mitra</th>
+                      <th className="py-3 px-4 font-medium">Tipe</th>
+                      <th className="py-3 px-4 font-medium">Lokasi</th>
+                      <th className="py-3 px-4 font-medium">Status TLS</th>
+                      <th className="py-3 px-4 font-medium rounded-tr-lg">Skor OMAX</th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                   {[
+                     { name: 'PT Sapi Unggul', type: 'Supplier', loc: 'Jawa Tengah', status: 'green' as TLSStatus, score: '98/100' },
+                     { name: 'Pabrik Makmur', type: 'Produsen', loc: 'Jawa Barat', status: 'green' as TLSStatus, score: '95/100' },
+                     { name: 'Kemas Indah', type: 'Pengemasan', loc: 'Jakarta', status: 'yellow' as TLSStatus, score: '78/100' },
+                     { name: 'Logistik Cepat', type: 'Distributor', loc: 'Nasional', status: 'green' as TLSStatus, score: '92/100' },
+                   ].map((member, i) => (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                         <td className="py-3 px-4 font-medium text-gray-800">{member.name}</td>
+                         <td className="py-3 px-4 text-gray-600">{member.type}</td>
+                         <td className="py-3 px-4 text-gray-600">{member.loc}</td>
+                         <td className="py-3 px-4"><TrafficLightStatus status={member.status} /></td>
+                         <td className="py-3 px-4 font-bold text-gray-700">{member.score}</td>
+                      </tr>
+                   ))}
+                </tbody>
+             </table>
+          </div>
+        </main>
+      </div>
+
+      {/* Add Modal */}
+      {showAddModal && (
+         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+               <h3 className="text-xl font-bold text-gray-800 mb-4">Tambah Anggota Baru</h3>
+               <div className="space-y-4">
+                  <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Nama Mitra</label>
+                     <input type="text" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="Masukkan nama mitra" />
+                  </div>
+                  <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Anggota</label>
+                     <select className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                        <option>Supplier</option>
+                        <option>Produsen</option>
+                        <option>Pengemasan</option>
+                        <option>Distributor</option>
+                        <option>Retailer</option>
+                     </select>
+                  </div>
+                  <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Upload Sertifikat / Dokumen</label>
+                     <input type="file" className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700" />
+                  </div>
+               </div>
+               <div className="flex gap-3 mt-8">
+                  <button onClick={() => setShowAddModal(false)} className="flex-1 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Batal</button>
+                  <button onClick={() => setShowAddModal(false)} className={`flex-1 py-2 rounded-lg bg-${themeColor}-600 text-white font-medium hover:bg-${themeColor}-700`}>Simpan</button>
+               </div>
+            </div>
+         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default SupplyChain;
