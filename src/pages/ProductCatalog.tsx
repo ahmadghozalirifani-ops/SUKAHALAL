@@ -85,8 +85,8 @@ export default function ProductCatalog({ onNavigate, userRole, onSetRole }: Prop
           onNavigate={onNavigate}
         />
         
-        {/* KPI Mini-bar & Cheerful Quick Navigation Bar */}
-        <div className="bg-white border-b border-emerald-100/80 px-6 py-3 shrink-0 flex flex-wrap gap-4 items-center justify-between z-10 shadow-2xs">
+        {/* KPI Mini-bar & Role Quick Navigation Bar */}
+        <div className="bg-white border-b border-slate-200 px-6 py-3 shrink-0 flex flex-wrap gap-4 items-center justify-between z-10 shadow-2xs">
           <div className="flex items-center space-x-6">
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">Total Produk</span>
@@ -101,30 +101,42 @@ export default function ProductCatalog({ onNavigate, userRole, onSetRole }: Prop
             </div>
             <div className="h-7 w-px bg-slate-200 hidden sm:block"></div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">Rating Komunitas</span>
-              <span className="text-xl font-black text-amber-500 flex items-center gap-1">
-                <span>★ 4.9</span> <span className="text-[11px] text-slate-400 font-normal">/ 5.0</span>
+              <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider">Peran Aktif</span>
+              <span className="text-xs font-bold text-slate-700 capitalize">
+                {userRole === 'seller' ? '🏪 Produsen / UMKM' : userRole === 'distributor' ? '🚚 Distributor Logistik' : userRole === 'customer' ? '🛍️ Konsumen Pembeli' : '🌐 Tamu'}
               </span>
             </div>
           </div>
 
-          {/* Quick Action Navigation Buttons */}
+          {/* Quick Action Navigation Buttons customized by role */}
           <div className="flex items-center gap-2">
+            {userRole === 'seller' && (
+              <button 
+                onClick={() => onNavigate('product-management')}
+                className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              >
+                <span>➕</span> Tambah Produk Baru
+              </button>
+            )}
+
+            {userRole === 'distributor' && (
+              <button 
+                onClick={() => onNavigate('supply-chain')}
+                className="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+              >
+                <span>🚚</span> Jadwalkan Armada Truk
+              </button>
+            )}
+
             <button 
               onClick={() => onNavigate('supplier-catalog')}
-              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-emerald-200"
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-emerald-200 cursor-pointer"
             >
-              <span>🏢</span> Katalog Supplier
-            </button>
-            <button 
-              onClick={() => onNavigate('supply-chain')}
-              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-blue-200"
-            >
-              <span>🚚</span> Lacak Rantai Pasok
+              <span>🏢</span> Direktori Pemasok
             </button>
             <button 
               onClick={() => onNavigate('cart')}
-              className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-amber-200"
+              className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-purple-200 cursor-pointer"
             >
               <span>🛒</span> Keranjang
             </button>
