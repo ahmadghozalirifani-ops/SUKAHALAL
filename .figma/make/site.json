@@ -1,0 +1,10 @@
+{
+  "description": "Create and manage academic papers effortlessly with this user-friendly web app designed for students and researchers, enhancing productivity and organization.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
