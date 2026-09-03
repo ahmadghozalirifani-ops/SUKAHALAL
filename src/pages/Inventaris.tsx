@@ -1,171 +1,176 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import AppHeader from '../components/AppHeader';
-import AppSidebar from '../components/AppSidebar';
-import KPIWidget from '../components/KPIWidget';
-import TrafficLightStatus from '../components/TrafficLightStatus';
-
-type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { UserRole } from '../App'
 
 interface Props {
-  onNavigate: (page: string) => void;
-  userRole: UserRole;
-  onSetRole: (role: UserRole) => void;
+  onNavigate: (page: string) => void
+  userRole: UserRole
+  onSetRole: (role: UserRole) => void
 }
 
-const mockInventory = [
-  { id: 1, name: 'Rendang Sapi Suwir', sku: 'RND-001', category: 'Makanan Siap Saji', stock: 120, minStock: 20, status: 'good' },
-  { id: 2, name: 'Keripik Tempe', sku: 'KRP-001', category: 'Cemilan', stock: 15, minStock: 50, status: 'danger' },
-  { id: 3, name: 'Madu Hutan Liar', sku: 'MDH-001', category: 'Kesehatan', stock: 25, minStock: 30, status: 'warning' },
-  { id: 4, name: 'Kopi Arabika Gayo', sku: 'KOP-001', category: 'Minuman', stock: 85, minStock: 20, status: 'good' },
-  { id: 5, name: 'Kurma Ajwa', sku: 'KRM-001', category: 'Makanan Sehat', stock: 5, minStock: 100, status: 'danger' },
-];
+type StockStatus = 'Tersedia' | 'Hampir Habis' | 'Habis'
 
-export default function Inventaris({ onNavigate, userRole, onSetRole }: Props) {
-  const { t } = useTranslation();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [inventory, setInventory] = useState(mockInventory);
+const products: { id: string; name: string; supplier: string; stock: number; unit: string; price: string; status: StockStatus; lastUpdate: string }[] = [
+  { id: 'PRD-001', name: 'Mi Instan Kari Ayam Halal', supplier: 'CV Halal Mart', stock: 480, unit: 'pcs', price: 'Rp 25.000', status: 'Tersedia', lastUpdate: '03 Sep 2026' },
+  { id: 'PRD-002', name: 'Bumbu Dapur Rendang 200g', supplier: 'PT Bumbu Nusantara', stock: 25, unit: 'pcs', price: 'Rp 45.500', status: 'Hampir Habis', lastUpdate: '02 Sep 2026' },
+  { id: 'PRD-003', name: 'Beras Premium Pandan Wangi 5kg', supplier: 'UD Jaya Beras', stock: 120, unit: 'sak', price: 'Rp 85.000', status: 'Tersedia', lastUpdate: '01 Sep 2026' },
+  { id: 'PRD-004', name: 'Sambal Terasi Super 150ml', supplier: 'CV Sambalindo', stock: 0, unit: 'botol', price: 'Rp 32.000', status: 'Habis', lastUpdate: '30 Agu 2026' },
+  { id: 'PRD-005', name: 'Kecap Manis Organik 275ml', supplier: 'CV Kecap Sejahtera', stock: 215, unit: 'botol', price: 'Rp 38.000', status: 'Tersedia', lastUpdate: '03 Sep 2026' },
+  { id: 'PRD-006', name: 'Keripik Singkong Balado 200g', supplier: 'PT Camilan Halal', stock: 18, unit: 'pcs', price: 'Rp 28.500', status: 'Hampir Habis', lastUpdate: '02 Sep 2026' },
+]
+
+const statusColors: Record<StockStatus, string> = {
+  'Tersedia': 'bg-green-100 text-green-700',
+  'Hampir Habis': 'bg-amber-100 text-amber-700',
+  'Habis': 'bg-red-100 text-red-600',
+}
+
+export default function Inventaris({ onNavigate, userRole }: Props) {
+  const { t } = useTranslation()
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState<'Semua' | StockStatus>('Semua')
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editStock, setEditStock] = useState<number>(0)
+  const [inventory, setInventory] = useState(products)
+
+  const filtered = inventory.filter(p =>
+    (filterStatus === 'Semua' || p.status === filterStatus) &&
+    p.name.toLowerCase().includes(search.toLowerCase())
+  )
+
+  function saveEdit(id: string) {
+    setInventory(prev => prev.map(p => {
+      if (p.id !== id) return p
+      const newStock = editStock
+      const status: StockStatus = newStock === 0 ? 'Habis' : newStock <= 30 ? 'Hampir Habis' : 'Tersedia'
+      return { ...p, stock: newStock, status, lastUpdate: '03 Sep 2026' }
+    }))
+    setEditId(null)
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="inventaris" />
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <AppHeader 
-          onNavigate={onNavigate} 
-          userRole={userRole} 
-          onSetRole={onSetRole}
-          breadcrumbs={[{ label: t('breadcrumbs.dashboard'), page: 'dashboard' }, { label: t('breadcrumbs.inventory') }]}
-        />
-        
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <KPIWidget title={t('inventory.total_sku')} value="127" trend="" status="neutral" />
-            <KPIWidget title={t('inventory.available')} value="98" trend="" status="good" />
-            <KPIWidget title={t('inventory.low_stock')} value="18" trend="" status="warning" />
-            <KPIWidget title={t('inventory.out_of_stock')} value="11" trend="" status="danger" />
+    <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('landing')}>
+            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm">S</div>
+            <span className="font-extrabold text-green-700">SUKAHALAL</span>
           </div>
+          <button onClick={() => onNavigate('dashboard')} className="text-sm text-gray-500 hover:text-gray-700 font-medium cursor-pointer">← Dashboard</button>
+        </div>
+      </div>
 
-          {/* Restock Alerts */}
-          <div className="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl flex items-start shadow-sm">
-            <span className="text-xl mr-3">⚠️</span>
-            <div>
-              <h3 className="font-bold text-red-800">{t('inventory.restock_alert_title')}</h3>
-              <p className="text-red-600 text-sm mt-1">{t('inventory.restock_alert_desc')}</p>
-              <div className="mt-2 flex gap-2">
-                {inventory.filter(i => i.status === 'danger').map(item => (
-                  <span key={item.id} className="bg-white text-red-700 px-2 py-1 rounded text-xs border border-red-200 font-medium">
-                    {item.name} ({item.stock}/{item.minStock})
-                  </span>
-                ))}
-              </div>
-            </div>
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-extrabold text-gray-900">Manajemen Inventaris & Stok Halal</h1>
+            <p className="text-sm text-gray-500">Pantau ketersediaan stok produk halal secara real-time</p>
           </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-gray-900">{t('inventory.list_title')}</h2>
-              <div className="flex gap-2">
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
-                  {t('inventory.bulk_update')}
-                </button>
-                <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
-                  + {t('inventory.add_stock')}
-                </button>
-              </div>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-sm uppercase tracking-wider">
-                    <th className="p-4 font-medium"><input type="checkbox" className="rounded text-green-600" /></th>
-                    <th className="p-4 font-medium">{t('inventory.col_name')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_sku')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_category')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_stock')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_min_stock')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_status')}</th>
-                    <th className="p-4 font-medium">{t('inventory.col_action')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {inventory.map(item => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="p-4"><input type="checkbox" className="rounded text-green-600" /></td>
-                      <td className="p-4 font-medium text-gray-900">{item.name}</td>
-                      <td className="p-4 text-gray-500 text-sm">{item.sku}</td>
-                      <td className="p-4 text-gray-500 text-sm">{item.category}</td>
-                      <td className="p-4">
-                        <div className="flex items-center group cursor-pointer">
-                          <span className="font-bold text-gray-800">{item.stock}</span>
-                          <span className="ml-2 opacity-0 group-hover:opacity-100 text-gray-400 text-xs">✏️</span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-gray-500">{item.minStock}</td>
-                      <td className="p-4">
-                        <TrafficLightStatus status={item.status as any} />
-                      </td>
-                      <td className="p-4">
-                        <button className="text-green-600 hover:text-green-800 text-sm font-medium">{t('common.edit')}</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          {/* Simple Stock History Chart Simulation */}
-          <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="font-bold text-gray-900 mb-6">{t('inventory.history_chart')}</h3>
-            <div className="h-48 flex items-end justify-between space-x-2">
-              {[40, 55, 30, 80, 60, 90, 75, 110, 85, 120].map((val, idx) => (
-                <div key={idx} className="w-full bg-green-100 hover:bg-green-200 rounded-t-sm relative group transition-all" style={{ height: `${val}%` }}>
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">
-                    {val}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-4 text-xs text-gray-400">
-              <span>W1</span><span>W2</span><span>W3</span><span>W4</span><span>W5</span>
-              <span>W6</span><span>W7</span><span>W8</span><span>W9</span><span>W10</span>
-            </div>
-          </div>
+          {userRole === 'seller' && (
+            <button onClick={() => onNavigate('product-management')} className="bg-green-600 hover:bg-green-700 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-sm">
+              + Kelola Produk & Tambah Stok
+            </button>
+          )}
         </div>
 
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">{t('inventory.add_stock_modal')}</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.col_name')}</label>
-                  <input type="text" className="w-full border border-gray-300 rounded-lg p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.col_sku')}</label>
-                  <input type="text" className="w-full border border-gray-300 rounded-lg p-2" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.col_stock')}</label>
-                    <input type="number" className="w-full border border-gray-300 rounded-lg p-2" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.col_min_stock')}</label>
-                    <input type="number" className="w-full border border-gray-300 rounded-lg p-2" />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 flex gap-3 justify-end">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">{t('common.cancel')}</button>
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium">{t('common.save')}</button>
-              </div>
-            </div>
+        {/* Status cards */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {[
+            { label: 'Stok Tersedia', count: inventory.filter(p => p.status === 'Tersedia').length, color: 'text-green-600', bg: 'bg-green-50 border-green-200', icon: '✅' },
+            { label: 'Hampir Habis', count: inventory.filter(p => p.status === 'Hampir Habis').length, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', icon: '⚠️' },
+            { label: 'Stok Habis', count: inventory.filter(p => p.status === 'Habis').length, color: 'text-red-600', bg: 'bg-red-50 border-red-200', icon: '❌' },
+          ].map(s => (
+            <button
+              key={s.label}
+              onClick={() => setFilterStatus(s.label === 'Stok Tersedia' ? 'Tersedia' : s.label === 'Hampir Habis' ? 'Hampir Habis' : 'Habis')}
+              className={`${s.bg} border rounded-2xl p-4 text-center hover:shadow-sm transition-shadow cursor-pointer`}
+            >
+              <div className="text-2xl mb-1">{s.icon}</div>
+              <div className={`text-2xl font-extrabold ${s.color}`}>{s.count}</div>
+              <div className="text-xs text-gray-600 mt-0.5">{s.label}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-3 mb-4">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari produk halal di inventaris..."
+              className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm"
+            />
           </div>
-        )}
-      </main>
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value as typeof filterStatus)}
+            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer shadow-sm"
+          >
+            {['Semua', 'Tersedia', 'Hampir Habis', 'Habis'].map(s => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  {['ID', 'Nama Produk', 'Supplier', 'Stok', 'Satuan', 'Harga', 'Status', 'Update Terakhir', 'Aksi'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => (
+                  <tr key={p.id} className={`border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${p.status === 'Habis' ? 'opacity-70' : ''}`}>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{p.id}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800 max-w-44 truncate">{p.name}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{p.supplier}</td>
+                    <td className="px-4 py-3">
+                      {editId === p.id ? (
+                        <input
+                          type="number"
+                          value={editStock}
+                          onChange={e => setEditStock(Number(e.target.value))}
+                          className="w-20 border border-green-400 rounded-lg px-2 py-1 text-sm focus:outline-none"
+                        />
+                      ) : (
+                        <span className={`font-bold ${p.stock === 0 ? 'text-red-500' : p.stock <= 30 ? 'text-amber-500' : 'text-gray-800'}`}>
+                          {p.stock}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{p.unit}</td>
+                    <td className="px-4 py-3 font-medium text-gray-700">{p.price}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[p.status]}`}>{p.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{p.lastUpdate}</td>
+                    <td className="px-4 py-3">
+                      {editId === p.id ? (
+                        <div className="flex gap-1">
+                          <button onClick={() => saveEdit(p.id)} className="text-green-600 hover:underline text-xs font-medium cursor-pointer">Simpan</button>
+                          <span className="text-gray-300">|</span>
+                          <button onClick={() => setEditId(null)} className="text-gray-400 hover:underline text-xs cursor-pointer">Batal</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => { setEditId(p.id); setEditStock(p.stock) }} className="text-blue-600 hover:underline text-xs font-medium cursor-pointer">
+                          Update Stok
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

@@ -1,242 +1,181 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import AppHeader from '../components/AppHeader';
-import AppSidebar from '../components/AppSidebar';
-import TrafficLightStatus, { type TLSStatus } from '../components/TrafficLightStatus';
-import TraceabilityModal from '../components/TraceabilityModal';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { UserRole } from '../App'
+import TraceabilityModal from '../components/TraceabilityModal'
 
-export type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
-
-export interface PageProps {
-  onNavigate: (page: string) => void;
-  userRole: UserRole;
-  onSetRole: (role: UserRole) => void;
+interface Props {
+  onNavigate: (page: string) => void
+  userRole: UserRole
+  onSetRole: (role: UserRole) => void
 }
 
-const VerificationCenter: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => {
-  const { t } = useTranslation();
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showTraceModal, setShowTraceModal] = useState(false);
-  const [apiConnected, setApiConnected] = useState(true);
+const sideNav = [
+  { id: 'dashboard', label: 'Dasbor', icon: '⊞' },
+  { id: 'supply-chain', label: 'Manajemen Rantai Pasok', icon: '🔗' },
+  { id: 'verification', label: 'Pusat Verifikasi', icon: '🛡️' },
+  { id: 'inventaris', label: 'Inventaris', icon: '📦' },
+  { id: 'pesanan', label: 'Pesanan', icon: '🛒' },
+  { id: 'laporan', label: 'Laporan', icon: '📊' },
+  { id: 'settings', label: 'Pengaturan', icon: '⚙️' },
+]
 
-  const themeColor = userRole === 'distributor' ? 'blue' : 'green';
+const steps = [
+  { num: 1, label: 'Upload Dokumen', icon: '⬆️' },
+  { num: 2, label: 'AI-Extract Data', icon: '🤖' },
+  { num: 3, label: 'Submit ke BPJPH', icon: '📋' },
+  { num: 4, label: 'Status Real-time', icon: '📈' },
+]
 
-  const steps = ['Submit Dokumen', 'Pengecekan AI', 'Verifikasi BPJPH', 'Sertifikat Terbit'];
+type Status = 'Menunggu' | 'Disetujui' | 'Ditolak'
+
+const initialItems = [
+  { no: 1, product: 'Keripik Tempe Renyah', submitted: '12-Oct-2023', status: 'Menunggu' as Status, eta: '19-Oct-2023' },
+  { no: 2, product: 'Kopi Luwak Premium', submitted: '10-Oct-2023', status: 'Disetujui' as Status, eta: 'Ready' },
+  { no: 3, product: 'Sambal Hijau Pedas', submitted: '09-Oct-2023', status: 'Menunggu' as Status, eta: '16-Oct-2023' },
+  { no: 4, product: 'Saus Tomat Instan', submitted: '05-Oct-2023', status: 'Ditolak' as Status, eta: 'N/A' },
+  { no: 5, product: 'Ayam Geprek Beku', submitted: '02-Oct-2023', status: 'Disetujui' as Status, eta: 'Ready' },
+]
+
+const statusColors: Record<Status, string> = {
+  Menunggu: 'bg-amber-100 text-amber-700',
+  Disetujui: 'bg-green-100 text-green-700',
+  Ditolak: 'bg-red-100 text-red-700',
+}
+
+export default function VerificationCenter({ onNavigate }: Props) {
+  const { t } = useTranslation()
+  const [activeNav, setActiveNav] = useState('verification')
+  const [activeStep, setActiveStep] = useState(1)
+  const [items] = useState(initialItems)
+  const [showTraceModal, setShowTraceModal] = useState(false)
+
+  function handleNav(id: string) {
+    setActiveNav(id)
+    if (id !== 'verification') onNavigate(id)
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar onNavigate={onNavigate} currentRoute="verification-center" userRole={userRole} />
-      <div className="flex-1 flex flex-col bg-gray-50">
-        <AppHeader 
-           userRole={userRole} 
-           onSetRole={onSetRole} 
-           breadcrumbs={[
-             { label: t('breadcrumbs.dashboard', 'Dashboard') },
-             { label: t('verification.title', 'Pusat Verifikasi') }
-           ]} 
-        />
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="flex justify-between items-center mb-4">
-             <h1 className="text-2xl font-bold text-gray-800">{t('verification.title', 'Pusat Verifikasi Dokumen & Sertifikasi')}</h1>
-             <div className="flex gap-3">
-                 <button onClick={() => setShowTraceModal(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-2">
-                   🔍 Cek Traceability QR
-                 </button>
-                 <button onClick={() => onNavigate('upload-dokumen')} className={`bg-${themeColor}-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-${themeColor}-700 transition-colors flex items-center gap-2`}>
-                   📄 Upload Dokumen Baru
-                 </button>
-             </div>
+    <div className="flex h-screen bg-gray-50 font-['Inter',sans-serif] overflow-hidden">
+      <aside className="w-56 bg-white border-r border-gray-100 flex flex-col shrink-0">
+        <div className="flex items-center gap-2 px-4 py-5 border-b border-gray-100 cursor-pointer" onClick={() => onNavigate('landing')}>
+          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-extrabold text-sm">S</div>
+          <span className="font-extrabold text-green-700 text-sm">SUKAHALAL</span>
+        </div>
+        <nav className="flex-1 px-3 py-6 space-y-0.5">
+          {sideNav.map(item => (
+            <button key={item.id} onClick={() => handleNav(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeNav === item.id
+                  ? 'bg-teal-50 text-teal-700 font-semibold border-l-4 border-teal-600 rounded-l-none pl-2'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <span className="text-base w-5 text-center">{item.icon}</span>
+              <span className="text-left text-xs">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <button onClick={() => onNavigate('dashboard')} className="hover:text-gray-600 cursor-pointer">Dashboard</button>
+            <span>›</span>
+            <span className="text-gray-700 font-medium">Pusat Verifikasi Halal</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowTraceModal(true)} className="border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
+              🔍 Cek Traceability QR
+            </button>
+            <button onClick={() => onNavigate('dashboard')} className="w-8 h-8 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 text-xs transition-colors cursor-pointer" title="Dashboard">⊞</button>
+          </div>
+        </div>
+
+        <div className="p-6 max-w-5xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-xl font-extrabold text-gray-900">Pusat Verifikasi Dokumen & Sertifikasi BPJPH</h1>
+            <p className="text-xs text-gray-500 mt-1">Kelola dan pantau proses verifikasi sertifikasi Halal Anda secara terintegrasi dan transparan.</p>
           </div>
 
-          {/* Progress Indicator */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-             <h2 className="text-sm font-bold text-gray-500 mb-6 uppercase tracking-wider">Alur Verifikasi Standar</h2>
-             <div className="flex items-center justify-between relative">
-                <div className="absolute h-1 bg-gray-200 left-4 right-4 top-1/2 -translate-y-1/2 z-0"></div>
-                {steps.map((step, i) => (
-                   <div key={i} className="relative z-10 flex flex-col items-center gap-2">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-sm ${i < 3 ? `bg-${themeColor}-500` : 'bg-gray-300'}`}>
-                         {i < 2 ? '✓' : i + 1}
-                      </div>
-                      <span className={`text-xs font-semibold ${i < 3 ? `text-${themeColor}-700` : 'text-gray-400'}`}>{step}</span>
-                   </div>
-                ))}
-             </div>
+          {/* Steps */}
+          <div className="flex gap-0 mb-6 overflow-x-auto">
+            {steps.map((step, i) => (
+              <button key={step.num} onClick={() => {
+                setActiveStep(step.num)
+                if (step.num === 1) onNavigate('upload-dokumen')
+              }}
+                className={`flex-1 min-w-36 flex flex-col items-center gap-2 py-4 px-4 relative transition-colors cursor-pointer ${
+                  activeStep === step.num ? 'bg-teal-700 text-white shadow-sm' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                } ${i === 0 ? 'rounded-l-xl' : ''} ${i === steps.length - 1 ? 'rounded-r-xl' : ''}`}
+                style={i > 0 ? { clipPath: 'polygon(12px 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 12px 100%, 0 50%)' } : undefined}
+              >
+                <span className="text-2xl">{step.icon}</span>
+                <div className="text-xs font-semibold text-center leading-tight">
+                  <div className="opacity-70">Step {step.num}</div>
+                  <div>{step.label}</div>
+                </div>
+              </button>
+            ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-             {/* Left Column */}
-             <div className="lg:col-span-2 space-y-6">
-                {/* Verification Table */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                   <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white">
-                      <h2 className="text-lg font-bold text-gray-800">Daftar Pengajuan Verifikasi</h2>
-                   </div>
-                   <div className="overflow-x-auto">
-                      <table className="w-full text-left text-sm">
-                         <thead>
-                            <tr className="bg-gray-50 text-gray-500">
-                               <th className="py-3 px-4 font-medium">Produk / Entitas</th>
-                               <th className="py-3 px-4 font-medium">Tipe Dokumen</th>
-                               <th className="py-3 px-4 font-medium">Tanggal Submit</th>
-                               <th className="py-3 px-4 font-medium">Status</th>
-                               <th className="py-3 px-4 font-medium">Skor AI</th>
-                               <th className="py-3 px-4 font-medium text-center">Aksi</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y divide-gray-100">
-                            {[
-                               { name: 'Bumbu Rendang Sachet', doc: 'Sertifikat Halal', date: '12 Okt 2023', status: 'yellow' as TLSStatus, score: '85%' },
-                               { name: 'Truk Pendingin B', doc: 'Sertifikat Kebersihan', date: '10 Okt 2023', status: 'green' as TLSStatus, score: '98%' },
-                               { name: 'Bahan Baku Daging', doc: 'Sertifikat RPH', date: '05 Okt 2023', status: 'red' as TLSStatus, score: '45%' },
-                            ].map((req, i) => (
-                               <tr key={i} className="hover:bg-gray-50 transition-colors">
-                                  <td className="py-3 px-4 font-medium text-gray-800">{req.name}</td>
-                                  <td className="py-3 px-4 text-gray-600">{req.doc}</td>
-                                  <td className="py-3 px-4 text-gray-500">{req.date}</td>
-                                  <td className="py-3 px-4"><TrafficLightStatus status={req.status} /></td>
-                                  <td className="py-3 px-4">
-                                     <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden w-16">
-                                           <div className={`h-full ${parseInt(req.score) > 80 ? 'bg-green-500' : parseInt(req.score) > 50 ? 'bg-yellow-400' : 'bg-red-500'}`} style={{ width: req.score }}></div>
-                                        </div>
-                                        <span className="font-bold text-gray-700 text-xs">{req.score}</span>
-                                     </div>
-                                  </td>
-                                  <td className="py-3 px-4 text-center">
-                                     <button onClick={() => setShowDetailModal(true)} className={`text-${themeColor}-600 hover:text-${themeColor}-800 font-medium text-xs hover:underline`}>Detail</button>
-                                  </td>
-                               </tr>
-                            ))}
-                         </tbody>
-                      </table>
-                   </div>
-                </div>
-             </div>
-
-             {/* Right Column */}
-             <div className="space-y-6">
-                {/* API Status */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                   <h2 className="text-lg font-bold text-gray-800 mb-4">Integrasi BPJPH</h2>
-                   <div className="flex items-center justify-between p-3 rounded-xl border border-gray-200 bg-gray-50">
-                      <div className="flex items-center gap-3">
-                         <div className={`w-3 h-3 rounded-full ${apiConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                         <span className="font-medium text-gray-700">API SIHALAL</span>
-                      </div>
-                      <button onClick={() => setApiConnected(!apiConnected)} className={`text-xs px-3 py-1 rounded font-bold ${apiConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                         {apiConnected ? 'Connected' : 'Disconnected'}
-                      </button>
-                   </div>
-                   <p className="text-xs text-gray-500 mt-3 text-center">Terakhir sinkronisasi: 2 menit yang lalu</p>
-                </div>
-
-                {/* TLS Summary */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                   <h2 className="text-lg font-bold text-gray-800 mb-4">Ringkasan Status (TLS)</h2>
-                   <div className="space-y-3">
-                      <div className="flex items-center justify-between bg-green-50 px-4 py-3 rounded-xl border border-green-100">
-                         <div className="flex items-center gap-2"><TrafficLightStatus status="green" /><span className="font-medium text-green-800 text-sm">Aktif & Valid</span></div>
-                         <span className="font-bold text-green-800">12</span>
-                      </div>
-                      <div className="flex items-center justify-between bg-yellow-50 px-4 py-3 rounded-xl border border-yellow-100">
-                         <div className="flex items-center gap-2"><TrafficLightStatus status="yellow" /><span className="font-medium text-yellow-800 text-sm">Akan Expired (&lt;30hr)</span></div>
-                         <span className="font-bold text-yellow-800">3</span>
-                      </div>
-                      <div className="flex items-center justify-between bg-red-50 px-4 py-3 rounded-xl border border-red-100">
-                         <div className="flex items-center gap-2"><TrafficLightStatus status="red" /><span className="font-medium text-red-800 text-sm">Bermasalah / Reject</span></div>
-                         <span className="font-bold text-red-800">1</span>
-                      </div>
-                   </div>
-                </div>
-
-                {/* Compliance Calendar */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                   <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">📅 Kalender Kepatuhan</h2>
-                   <div className="space-y-3">
-                      <div className="flex gap-3 border-l-2 border-yellow-400 pl-3">
-                         <div className="text-center bg-gray-50 rounded p-1 min-w-[3rem]">
-                            <div className="text-xs text-gray-500 font-bold uppercase">Okt</div>
-                            <div className="font-bold text-gray-800 text-lg">25</div>
-                         </div>
-                         <div>
-                            <div className="text-sm font-bold text-gray-800">Sertifikat Pabrik Expired</div>
-                            <div className="text-xs text-gray-500">Pabrik Makmur (Tinggal 10 hari)</div>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </main>
-      </div>
-
-      {/* Detail Modal */}
-      {showDetailModal && (
-         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-               <div className="flex justify-between items-start mb-6">
-                  <div>
-                     <h3 className="text-xl font-bold text-gray-800">Detail Verifikasi Dokumen</h3>
-                     <p className="text-sm text-gray-500">ID Pengajuan: REQ-20231012-001</p>
-                  </div>
-                  <button onClick={() => setShowDetailModal(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200">✕</button>
-               </div>
-               
-               <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                     <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">Informasi Produk</h4>
-                     <p className="font-medium text-gray-800">Bumbu Rendang Sachet</p>
-                     <p className="text-sm text-gray-600">Kategori: Makanan Olahan</p>
-                  </div>
-                  <div>
-                     <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">Status Saat Ini</h4>
-                     <div className="flex items-center gap-2 mb-1"><TrafficLightStatus status="yellow" /> <span className="font-bold text-yellow-700">Menunggu Review BPJPH</span></div>
-                     <p className="text-sm text-gray-600">Skor AI: 85% (Dokumen lengkap)</p>
-                  </div>
-               </div>
-
-               <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
-                  <div className="bg-gray-50 p-3 border-b border-gray-200 font-bold text-gray-700 text-sm">Riwayat Audit (Log Blockchain)</div>
-                  <div className="p-4 space-y-4">
-                     <div className="flex gap-4">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
-                        <div>
-                           <div className="text-sm font-bold text-gray-800">Dokumen diunggah oleh UMKM</div>
-                           <div className="text-xs text-gray-500">12 Okt 2023, 10:00 WIB • Hash: 0x8f...3a2</div>
-                        </div>
-                     </div>
-                     <div className="flex gap-4">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
-                        <div>
-                           <div className="text-sm font-bold text-gray-800">Pengecekan AI Selesai (Skor 85%)</div>
-                           <div className="text-xs text-gray-500">12 Okt 2023, 10:05 WIB • Hash: 0x9c...1b4</div>
-                        </div>
-                     </div>
-                     <div className="flex gap-4">
-                        <div className="w-2 h-2 rounded-full bg-yellow-400 mt-1.5 animate-pulse"></div>
-                        <div>
-                           <div className="text-sm font-bold text-gray-800">Review Manual BPJPH</div>
-                           <div className="text-xs text-gray-500">In Progress...</div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-
-               <div className="flex justify-end gap-3">
-                  <button onClick={() => setShowDetailModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Tutup</button>
-                  <button className={`px-4 py-2 rounded-lg bg-${themeColor}-600 text-white font-medium hover:bg-${themeColor}-700`}>Lihat Berkas (PDF)</button>
-               </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-900 text-sm">Permintaan Verifikasi Saat Ini</h2>
+              <button onClick={() => onNavigate('upload-dokumen')} className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-xs">
+                + Ajukan Verifikasi Baru
+              </button>
             </div>
-         </div>
-      )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    {['No', 'Nama Produk', 'Tanggal Submit', 'Status', 'ETA', 'Aksi'].map(h => (
+                      <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.no} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <td className="px-5 py-3.5 text-gray-600">{item.no}</td>
+                      <td className="px-5 py-3.5 font-medium text-gray-800">{item.product}</td>
+                      <td className="px-5 py-3.5 text-gray-600 text-xs">{item.submitted}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[item.status]}`}>{item.status}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-gray-600 text-xs">{item.eta}</td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => onNavigate('product-detail')} className="text-blue-600 hover:text-blue-700 text-xs font-medium cursor-pointer">Lihat Detail</button>
+                          <span className="text-gray-300">|</span>
+                          {item.status === 'Ditolak' ? (
+                            <button onClick={() => onNavigate('upload-dokumen')} className="text-orange-600 hover:text-orange-700 text-xs font-medium cursor-pointer">Re-submit</button>
+                          ) : (
+                            <button onClick={() => onNavigate('upload-dokumen')} className="text-teal-600 hover:text-teal-700 text-xs font-medium cursor-pointer">Edit</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 py-4 border-t border-gray-100">
+              {['⟨⟨', '⟨', '1', '...', '⟩', '⟩⟩'].map((n, i) => (
+                <button key={i} className={`w-8 h-8 rounded-lg text-xs font-medium cursor-pointer ${n === '1' ? 'bg-teal-600 text-white' : 'border border-gray-200 text-gray-500 hover:bg-gray-50'}`}>{n}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
 
       {/* Traceability Modal */}
       {showTraceModal && (
-        <TraceabilityModal onClose={() => setShowTraceModal(false)} />
+        <TraceabilityModal productName="Produk Halal Terverifikasi BPJPH" onClose={() => setShowTraceModal(false)} />
       )}
     </div>
-  );
-};
-
-export default VerificationCenter;
+  )
+}
