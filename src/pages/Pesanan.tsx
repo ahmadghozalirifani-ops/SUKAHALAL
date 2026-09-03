@@ -53,15 +53,50 @@ export default function Pesanan({ onNavigate, userRole, onSetRole }: Props) {
           breadcrumbs={[{ label: t('breadcrumbs.dashboard'), page: 'dashboard' }, { label: t('breadcrumbs.orders') }]}
         />
         
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-6 max-w-7xl mx-auto space-y-6">
+          {/* Quick Navigation Strip */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onNavigate('dashboard')}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              >
+                <span>←</span> Dashboard
+              </button>
+              <span className="text-xs text-gray-400 font-bold">|</span>
+              <span className="text-xs font-bold text-gray-800">Manajemen Pesanan & Ekspedisi Halal</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onNavigate('product-catalog')}
+                className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>📦</span> Katalog Produk
+              </button>
+              <button 
+                onClick={() => onNavigate('supply-chain')}
+                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>🚚</span> Lacak Cold Chain Rantai Pasok
+              </button>
+              <button 
+                onClick={() => onNavigate('inventaris')}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>📋</span> Stok Inventaris
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <KPIWidget title={t('orders.total')} value="82" trend="+5%" status="good" />
             <KPIWidget title={t('orders.pending')} value="12" trend="-2%" status="warning" />
             <KPIWidget title={t('orders.shipping')} value="34" trend="+10%" status="good" />
             <KPIWidget title={t('orders.completed')} value="36" trend="+8%" status="good" />
           </div>
 
-          <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex space-x-2 overflow-x-auto pb-1">
             {['Semua', 'Baru', 'Diproses', 'Dikirim', 'Selesai', 'Dibatalkan'].map(f => (
               <button 
                 key={f}
@@ -195,6 +230,16 @@ export default function Pesanan({ onNavigate, userRole, onSetRole }: Props) {
                         <input type="text" placeholder="Input resi..." className="text-right text-sm border-b border-gray-300 bg-transparent focus:outline-none focus:border-green-500" defaultValue={selectedOrder.status === 'Dikirim' ? 'JP1234567890' : ''} disabled={userRole !== 'seller'} />
                       </div>
                     </div>
+
+                    <button 
+                      onClick={() => {
+                        setSelectedOrder(null);
+                        onNavigate('supply-chain');
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 mt-4 shadow-xs transition-colors"
+                    >
+                      <span>🚚</span> Lacak Posisi Armada Ekspedisi di Rantai Pasok &rarr;
+                    </button>
                   </section>
                 </div>
               </div>

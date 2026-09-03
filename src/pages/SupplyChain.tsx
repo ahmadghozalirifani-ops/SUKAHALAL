@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import AppHeader from '../components/AppHeader';
 import AppSidebar from '../components/AppSidebar';
 import TrafficLightStatus, { type TLSStatus } from '../components/TrafficLightStatus';
+import { REAL_DISTRIBUTOR_FLEETS } from '../data/mockData';
 
 export type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
@@ -14,224 +15,408 @@ export interface PageProps {
 
 const SupplyChain: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => {
   const { t } = useTranslation();
-  const [activeNode, setActiveNode] = useState<number | null>(null);
+  const [activeNode, setActiveNode] = useState<number | null>(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedFleet, setSelectedFleet] = useState(REAL_DISTRIBUTOR_FLEETS[0]);
 
   const nodes = [
-    { id: 1, name: 'Supplier', icon: '🌾', status: 'green' as TLSStatus, cert: 'BPJPH-2023-A1', temp: '25°C', hum: '60%', seal: 'Aman' },
-    { id: 2, name: 'Manufacturer', icon: '🏭', status: 'green' as TLSStatus, cert: 'BPJPH-2023-B2', temp: '20°C', hum: '55%', seal: 'Aman' },
-    { id: 3, name: 'Packager', icon: '📦', status: 'yellow' as TLSStatus, cert: 'BPJPH-2022-C3', temp: '22°C', hum: '50%', seal: 'Aman' },
-    { id: 4, name: 'Distributor', icon: '🚚', status: 'green' as TLSStatus, cert: 'BPJPH-2023-D4', temp: '4°C', hum: '80%', seal: 'Aman' },
-    { id: 5, name: 'Retailer', icon: '🏪', status: 'red' as TLSStatus, cert: 'Tidak Valid', temp: '25°C', hum: '65%', seal: 'Rusak' },
+    { 
+      id: 1, 
+      name: 'Supplier Bahan Baku', 
+      entity: 'PT Malindo RPH Modern', 
+      icon: '🌾', 
+      status: 'green' as TLSStatus, 
+      cert: 'ID32160000881230422', 
+      temp: '4°C', 
+      hum: '60%', 
+      seal: 'Aman',
+      roleType: 'supplier',
+      desc: 'Penyembelihan sapi sesuai syariat oleh Juleha BNSP & sertifikasi NKV Level 1.'
+    },
+    { 
+      id: 2, 
+      name: 'Pabrik Pengolahan', 
+      entity: 'PT Bunda Halal Foods', 
+      icon: '🏭', 
+      status: 'green' as TLSStatus, 
+      cert: 'ID32110000123450223', 
+      temp: '22°C', 
+      hum: '55%', 
+      seal: 'Aman',
+      roleType: 'manufacturer',
+      desc: 'Pemasakan rendang lambat dan pengemasan steril pouch retort 121°C berstandar SJPH.'
+    },
+    { 
+      id: 3, 
+      name: 'Pengemasan & QC Halal', 
+      entity: 'Sentra Sterilisasi Halal', 
+      icon: '📦', 
+      status: 'green' as TLSStatus, 
+      cert: 'BPJPH-QC-2023-A', 
+      temp: '20°C', 
+      hum: '50%', 
+      seal: 'Aman',
+      roleType: 'packaging',
+      desc: 'Pemeriksaan kebocoran segel retort dan pencetakan barcode EAN-13 & QR trace.'
+    },
+    { 
+      id: 4, 
+      name: 'Distributor Cold Chain', 
+      entity: 'PT Pos Logistik Halal', 
+      icon: '🚚', 
+      status: 'green' as TLSStatus, 
+      cert: 'DIST-BPJPH-2024-089', 
+      temp: '-18.4°C', 
+      hum: '62%', 
+      seal: 'Aman (Terkunci)',
+      roleType: 'distributor',
+      desc: 'Armada Thermo King ber-IoT telemetri suhu beku & segel digital RFID real-time.'
+    },
+    { 
+      id: 5, 
+      name: 'Ritel Modern & Horeka', 
+      entity: 'Jaringan Halal Mart', 
+      icon: '🏪', 
+      status: 'green' as TLSStatus, 
+      cert: 'RITEL-ID-2024', 
+      temp: '24°C', 
+      hum: '65%', 
+      seal: 'Utuh',
+      roleType: 'retailer',
+      desc: 'Pajangan rak terpisah dari produk non-halal siap dikonsumsi masyarakat.'
+    },
   ];
 
   const risks = [
-    { loc: 'RPH (Slaughterhouse)', type: 'Kontaminasi Silang', level: 'High', measure: 'Pemisahan area basah & kering, alat khusus', status: 'Implemented' },
-    { loc: 'Raw Material Storage', type: 'Suhu tidak stabil', level: 'Medium', measure: 'IoT Temperature Monitoring', status: 'Active' },
-    { loc: 'Production Floor', type: 'Campuran bahan non-halal', level: 'High', measure: 'SOP Sterilisasi & Pengecekan BOM', status: 'Implemented' },
-    { loc: 'Packaging Area', type: 'Kemasan tidak food grade', level: 'Low', measure: 'Sertifikasi supplier kemasan', status: 'Active' },
-    { loc: 'Distribution Truck', type: 'Segel rusak di perjalanan', level: 'Medium', measure: 'Smart Lock & GPS Tracking', status: 'Warning' },
+    { loc: 'RPH Malindo (Slaughterhouse)', type: 'Kontaminasi Silang', level: 'High', measure: 'Pemisahan area basah & kering, audit Juleha BNSP', status: 'Implemented' },
+    { loc: 'Cold Storage Padalarang', type: 'Fluktuasi Suhu', level: 'Medium', measure: 'Sensor IoT Suhu -18°C dengan alarm notifikasi otomatis', status: 'Active' },
+    { loc: 'Pabrik Pengolahan Rendang', type: 'Kontaminasi Bahan Aditif', level: 'High', measure: 'Pemeriksaan Bill of Materials (BOM) & verifikasi SIHALAL', status: 'Implemented' },
+    { loc: 'Distribusi Truk Refrigerator', type: 'Kerusakan Segel di Jalan', level: 'Medium', measure: 'Smart RFID Digital Lock & GPS Geofencing real-time', status: 'Active' },
   ];
 
   const themeColor = userRole === 'distributor' ? 'blue' : 'green';
 
   return (
-
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
       <AppSidebar onNavigate={onNavigate} currentPage="supply-chain" userRole={userRole} />
-      <div className="flex-1 flex flex-col bg-gray-50">
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
         <AppHeader
-           onNavigate={onNavigate}
-           userRole={userRole}
-           breadcrumbs={[
-             { label: t('breadcrumbs.dashboard', 'Dashboard'), page: 'dashboard' },
-             { label: t('supplyChain.title', 'Rantai Pasok') }
-           ]}
+          onNavigate={onNavigate}
+          userRole={userRole}
+          breadcrumbs={[
+            { label: t('breadcrumbs.dashboard', 'Dashboard'), page: 'dashboard' },
+            { label: t('supplyChain.title', 'Rantai Pasok') }
+          ]}
         />
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="flex justify-between items-center mb-4">
-             <h1 className="text-2xl font-bold text-gray-800">{t('supplyChain.title', 'Manajemen Rantai Pasok Halal')}</h1>
-             <button onClick={() => setShowAddModal(true)} className={`bg-${themeColor}-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-${themeColor}-700 transition-colors`}>
-               + Tambah Anggota
-             </button>
+        {/* Navigation Action Bar */}
+        <div className="bg-white border-b border-slate-200 px-6 py-2.5 flex items-center justify-between shrink-0 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onNavigate('dashboard')}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            >
+              <span>←</span> Dashboard
+            </button>
+            <span className="text-xs text-slate-400 font-bold">|</span>
+            <span className="text-xs font-bold text-slate-700">Manajemen Rantai Pasok Halal (HACCP & SJPH)</span>
           </div>
 
-          {/* Interactive Flow */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-             <h2 className="text-lg font-bold text-gray-800 mb-12 text-center">Visualisasi Rantai Pasok Terintegrasi (IoT & TLS)</h2>
-             
-             <div className="relative flex justify-between items-center max-w-4xl mx-auto mb-8">
-                <div className="absolute h-1 bg-gray-200 left-0 right-0 top-1/2 -translate-y-1/2 z-0"></div>
-                {nodes.map((node, i) => (
-                  <div key={node.id} className="relative z-10 flex flex-col items-center">
-                    <button 
-                       onClick={() => setActiveNode(activeNode === node.id ? null : node.id)}
-                       className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-md border-4 transition-transform hover:scale-110 ${activeNode === node.id ? `border-${themeColor}-500 bg-${themeColor}-50` : 'border-white bg-white'} relative`}
-                    >
-                       {node.icon}
-                       <div className="absolute -top-1 -right-1">
-                          <TrafficLightStatus status={node.status} />
-                       </div>
-                    </button>
-                    <div className="mt-3 text-center">
-                       <p className="font-bold text-gray-800 text-sm">{node.name}</p>
-                       <p className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1">{node.cert}</p>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onNavigate('supplier-catalog')}
+              className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>🏢</span> Katalog Supplier
+            </button>
+            <button 
+              onClick={() => onNavigate('product-catalog')}
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>📦</span> Katalog Produk
+            </button>
+            <button 
+              onClick={() => onNavigate('verification')}
+              className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>🛡️</span> Pusat Verifikasi
+            </button>
+          </div>
+        </div>
+
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Alur Rantai Pasok Terintegrasi (Hulu ke Hilir)</h1>
+              <p className="text-xs text-gray-500">Monitoring real-time telemetri IoT, audit halal point, dan sertifikasi BPJPH</p>
+            </div>
+            <button 
+              onClick={() => setShowAddModal(true)} 
+              className={`bg-${themeColor}-700 hover:bg-${themeColor}-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5`}
+            >
+              <span>+</span> Tambah Mitra Node
+            </button>
+          </div>
+
+          {/* Interactive Flow Nodes */}
+          <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 p-6">
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6 text-center">
+              Pilih Tahapan Rantai Pasok untuk Melihat Parameter Otentikasi
+            </h2>
+            
+            <div className="relative flex justify-between items-center max-w-4xl mx-auto mb-6 px-2">
+              <div className="absolute h-1.5 bg-emerald-200 left-8 right-8 top-1/2 -translate-y-1/2 z-0 rounded-full"></div>
+              
+              {nodes.map((node) => (
+                <div key={node.id} className="relative z-10 flex flex-col items-center">
+                  <button 
+                    onClick={() => setActiveNode(node.id)}
+                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shadow-md border-3 transition-all hover:scale-105 cursor-pointer ${
+                      activeNode === node.id 
+                        ? 'border-green-600 bg-green-50 ring-4 ring-green-100 scale-105' 
+                        : 'border-white bg-white hover:border-gray-200'
+                    }`}
+                  >
+                    {node.icon}
+                    <div className="absolute -top-1 -right-1">
+                      <TrafficLightStatus status={node.status} size="sm" />
+                    </div>
+                  </button>
+                  <div className="mt-2 text-center max-w-[110px]">
+                    <p className="font-bold text-gray-900 text-[11px] leading-tight line-clamp-1">{node.name}</p>
+                    <p className="text-[10px] text-gray-500 truncate mt-0.5">{node.entity}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Selected Node Details Panel */}
+            {activeNode && (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-4xl mx-auto transition-all">
+                {nodes.filter(n => n.id === activeNode).map(node => (
+                  <div key={node.id} className="space-y-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl p-2 bg-white rounded-2xl shadow-xs border border-slate-200">{node.icon}</div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-gray-900 text-sm">{node.name}: {node.entity}</h3>
+                            <TrafficLightStatus status={node.status} size="sm" />
+                          </div>
+                          <p className="text-xs text-gray-500 font-mono">No. Sertifikasi: {node.cert}</p>
+                        </div>
+                      </div>
+
+                      {/* Node Contextual Navigation Button */}
+                      <div className="flex gap-2">
+                        {node.roleType === 'supplier' && (
+                          <button 
+                            onClick={() => onNavigate('supplier-profile')}
+                            className="px-3 py-1.5 bg-green-700 hover:bg-green-800 text-white text-xs font-bold rounded-lg transition-colors"
+                          >
+                            🏢 Buka Profil Supplier &rarr;
+                          </button>
+                        )}
+                        {node.roleType === 'manufacturer' && (
+                          <button 
+                            onClick={() => onNavigate('product-detail')}
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors"
+                          >
+                            📦 Lihat Produk Terkait &rarr;
+                          </button>
+                        )}
+                        {node.roleType === 'distributor' && (
+                          <button 
+                            onClick={() => setSelectedFleet(REAL_DISTRIBUTOR_FLEETS[0])}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors"
+                          >
+                            🚚 Pantau Armada IoT &rarr;
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 leading-relaxed">{node.desc}</p>
+
+                    {/* Real-time IoT Gauges */}
+                    <div>
+                      <h4 className="font-bold text-gray-700 text-xs mb-2 flex items-center gap-1.5">
+                        <span>📡</span> Sensor Telemetri IoT Node Ini:
+                      </h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Suhu Lingkungan</span>
+                          <p className="text-base font-extrabold text-blue-700 mt-0.5">{node.temp}</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Kelembapan Udara</span>
+                          <p className="text-base font-extrabold text-blue-700 mt-0.5">{node.hum}</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 text-center">
+                          <span className="text-[10px] text-gray-400 uppercase font-semibold">Integritas Segel</span>
+                          <p className="text-base font-extrabold text-emerald-600 mt-0.5">{node.seal}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
-             </div>
-
-             {/* Node Details / IoT Panel */}
-             {activeNode && (
-               <div className={`bg-${themeColor}-50 border border-${themeColor}-100 rounded-xl p-6 max-w-4xl mx-auto animate-fade-in`}>
-                  {nodes.filter(n => n.id === activeNode).map(node => (
-                     <div key={node.id}>
-                        <div className="flex items-center gap-3 mb-4">
-                           <div className="text-4xl">{node.icon}</div>
-                           <div>
-                              <h3 className="font-bold text-gray-800 text-lg">Detail {node.name}</h3>
-                              <div className="flex items-center gap-2">Status: <TrafficLightStatus status={node.status} /> <span className="text-sm">{node.cert}</span></div>
-                           </div>
-                        </div>
-                        <h4 className="font-semibold text-gray-700 text-sm mb-3">📡 Data IoT Real-time</h4>
-                        <div className="grid grid-cols-3 gap-4">
-                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
-                              <div className="text-xs text-gray-500 mb-1">Suhu Lingkungan</div>
-                              <div className="font-bold text-gray-800">{node.temp}</div>
-                           </div>
-                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
-                              <div className="text-xs text-gray-500 mb-1">Kelembapan</div>
-                              <div className="font-bold text-gray-800">{node.hum}</div>
-                           </div>
-                           <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-100 text-center">
-                              <div className="text-xs text-gray-500 mb-1">Status Segel Fisik</div>
-                              <div className={`font-bold ${node.seal === 'Aman' ? 'text-green-600' : 'text-red-600'}`}>{node.seal}</div>
-                           </div>
-                        </div>
-                     </div>
-                  ))}
-               </div>
-             )}
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-             {/* Risk Map / FMEA */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
-                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">⚠️ Peta Risiko Halal (FMEA)</h2>
-                <table className="w-full text-left text-sm">
-                   <thead>
-                      <tr className="border-b border-gray-200 text-gray-500">
-                         <th className="pb-3 font-medium">Titik Kontrol (CCP)</th>
-                         <th className="pb-3 font-medium">Risiko</th>
-                         <th className="pb-3 font-medium">Level</th>
-                         <th className="pb-3 font-medium">Mitigasi</th>
-                      </tr>
-                   </thead>
-                   <tbody className="divide-y divide-gray-100">
-                      {risks.map((risk, i) => (
-                         <tr key={i} className="hover:bg-gray-50">
-                            <td className="py-3 font-medium text-gray-800">{risk.loc}</td>
-                            <td className="py-3 text-gray-600">{risk.type}</td>
-                            <td className="py-3">
-                               <span className={`px-2 py-1 rounded text-xs font-bold ${risk.level === 'High' ? 'bg-red-100 text-red-700' : risk.level === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
-                                  {risk.level}
-                               </span>
-                            </td>
-                            <td className="py-3 text-gray-600">{risk.measure}</td>
-                         </tr>
-                      ))}
-                   </tbody>
-                </table>
-             </div>
+          {/* Distributor Real Fleet Monitoring IoT Panel */}
+          <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-100 pb-3">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <span>🚛</span> Monitoring Armada Cold Chain Berpendingin (IoT Live)
+                </h2>
+                <p className="text-xs text-gray-500">Pelacakan suhu sensor Thermo King & Carrier ber-GPS secara real-time</p>
+              </div>
+              <div className="flex gap-2">
+                {REAL_DISTRIBUTOR_FLEETS.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFleet(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                      selectedFleet.id === f.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {f.vehiclePlate}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-             {/* SLA Section */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">🤝 Service Level Agreement (SLA) Halal</h2>
-                <div className="space-y-4">
-                   <div className="p-4 rounded-xl border border-green-200 bg-green-50 flex justify-between items-center">
-                      <div>
-                         <h4 className="font-bold text-green-900">SLA Produsen - Distributor</h4>
-                         <p className="text-sm text-green-800">Menjaga suhu rantai dingin &lt; 4°C selama transit.</p>
-                      </div>
-                      <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Disetujui</span>
-                   </div>
-                   <div className="p-4 rounded-xl border border-gray-200 bg-white flex justify-between items-center">
-                      <div>
-                         <h4 className="font-bold text-gray-800">SLA Supplier - Produsen</h4>
-                         <p className="text-sm text-gray-500">Penyediaan sertifikat halal batch material setiap pengiriman.</p>
-                      </div>
-                      <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded">Menunggu Konfirmasi</span>
-                   </div>
+            {/* Fleet Info Card with Real Photo */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="h-48 lg:h-auto bg-slate-100 rounded-2xl overflow-hidden relative">
+                <img src={selectedFleet.image} alt={selectedFleet.fleetType} className="w-full h-full object-cover" />
+                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-md text-white text-[10px] font-mono">
+                  Plat: {selectedFleet.vehiclePlate}
                 </div>
-             </div>
+                <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-2 rounded-xl text-[11px] text-gray-800 shadow-md">
+                  <strong>{selectedFleet.fleetType}</strong>
+                  <p className="text-gray-500">{selectedFleet.operator}</p>
+                </div>
+              </div>
+
+              <div className="lg:col-span-2 space-y-3">
+                <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                  <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[10px] text-gray-400 block font-semibold">Suhu Ruang Box</span>
+                    <span className="text-xl font-black text-blue-700">{selectedFleet.temperature}°C</span>
+                    <span className="text-[10px] text-emerald-600 font-bold block">Target: {selectedFleet.targetTemp}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[10px] text-gray-400 block font-semibold">Kelembapan Box</span>
+                    <span className="text-xl font-black text-blue-700">{selectedFleet.humidity}%</span>
+                    <span className="text-[10px] text-gray-400 block">Relative Humidity</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[10px] text-gray-400 block font-semibold">Segel Digital RFID</span>
+                    <span className="text-xs font-bold text-emerald-700 block mt-1">{selectedFleet.sealStatus}</span>
+                    <span className="text-[9px] font-mono text-gray-400 block">{selectedFleet.sealCode}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-2xs">
+                    <span className="text-[10px] text-gray-400 block font-semibold">GPS Tracking</span>
+                    <span className="text-xs font-bold text-green-600 block mt-1">● {selectedFleet.gpsStatus}</span>
+                    <span className="text-[10px] text-gray-500 block">Sinyal Kuat</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+                  <p><strong>Rute Ekspedisi:</strong> {selectedFleet.route}</p>
+                  <p><strong>Lokasi Sekarang:</strong> 📍 {selectedFleet.currentLocation}</p>
+                  <p><strong>Driver PIC:</strong> {selectedFleet.driverName} ({selectedFleet.driverPhone})</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Member Table */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-x-auto">
-             <h2 className="text-lg font-bold text-gray-800 mb-4">Daftar Anggota Rantai Pasok</h2>
-             <table className="w-full text-left text-sm">
-                <thead>
-                   <tr className="border-b border-gray-200 text-gray-500 bg-gray-50">
-                      <th className="py-3 px-4 font-medium rounded-tl-lg">Nama Mitra</th>
-                      <th className="py-3 px-4 font-medium">Tipe</th>
-                      <th className="py-3 px-4 font-medium">Lokasi</th>
-                      <th className="py-3 px-4 font-medium">Status TLS</th>
-                      <th className="py-3 px-4 font-medium rounded-tr-lg">Skor OMAX</th>
-                   </tr>
+          {/* Risk Control Points Table */}
+          <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 p-6">
+            <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span>⚠️</span> Matriks Pengendalian Titik Kritis Kehalalan (Critical Control Point / CCP)
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-gray-500 border-b border-gray-100">
+                  <tr>
+                    <th className="py-2.5 px-3">Titik Kritis (Location)</th>
+                    <th className="py-2.5 px-3">Potensi Bahaya Halal</th>
+                    <th className="py-2.5 px-3">Level Risiko</th>
+                    <th className="py-2.5 px-3">Tindakan Pencegahan (SOP BPJPH)</th>
+                    <th className="py-2.5 px-3">Status Kontrol</th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                   {[
-                     { name: 'PT Sapi Unggul', type: 'Supplier', loc: 'Jawa Tengah', status: 'green' as TLSStatus, score: '98/100' },
-                     { name: 'Pabrik Makmur', type: 'Produsen', loc: 'Jawa Barat', status: 'green' as TLSStatus, score: '95/100' },
-                     { name: 'Kemas Indah', type: 'Pengemasan', loc: 'Jakarta', status: 'yellow' as TLSStatus, score: '78/100' },
-                     { name: 'Logistik Cepat', type: 'Distributor', loc: 'Nasional', status: 'green' as TLSStatus, score: '92/100' },
-                   ].map((member, i) => (
-                      <tr key={i} className="hover:bg-gray-50 transition-colors">
-                         <td className="py-3 px-4 font-medium text-gray-800">{member.name}</td>
-                         <td className="py-3 px-4 text-gray-600">{member.type}</td>
-                         <td className="py-3 px-4 text-gray-600">{member.loc}</td>
-                         <td className="py-3 px-4"><TrafficLightStatus status={member.status} /></td>
-                         <td className="py-3 px-4 font-bold text-gray-700">{member.score}</td>
-                      </tr>
-                   ))}
+                  {risks.map((r, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50">
+                      <td className="py-2.5 px-3 font-semibold text-gray-800">{r.loc}</td>
+                      <td className="py-2.5 px-3 text-gray-600">{r.type}</td>
+                      <td className="py-2.5 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${r.level === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {r.level}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-600">{r.measure}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded text-[10px]">
+                          ✓ {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
-             </table>
+              </table>
+            </div>
           </div>
         </main>
       </div>
 
-      {/* Add Modal */}
+      {/* Add Partner Modal */}
       {showAddModal && (
-         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-               <h3 className="text-xl font-bold text-gray-800 mb-4">Tambah Anggota Baru</h3>
-               <div className="space-y-4">
-                  <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Nama Mitra</label>
-                     <input type="text" className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none" placeholder="Masukkan nama mitra" />
-                  </div>
-                  <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Anggota</label>
-                     <select className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-                        <option>Supplier</option>
-                        <option>Produsen</option>
-                        <option>Pengemasan</option>
-                        <option>Distributor</option>
-                        <option>Retailer</option>
-                     </select>
-                  </div>
-                  <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">Upload Sertifikat / Dokumen</label>
-                     <input type="file" className="w-full border border-gray-300 rounded-lg p-2 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700" />
-                  </div>
-               </div>
-               <div className="flex gap-3 mt-8">
-                  <button onClick={() => setShowAddModal(false)} className="flex-1 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50">Batal</button>
-                  <button onClick={() => setShowAddModal(false)} className={`flex-1 py-2 rounded-lg bg-${themeColor}-600 text-white font-medium hover:bg-${themeColor}-700`}>Simpan</button>
-               </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-gray-900 text-sm">Tambah Mitra Rantai Pasok Halal</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
             </div>
-         </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Nama Perusahaan / Unit Usaha</label>
+                <input type="text" placeholder="Contoh: PT Sumber Pangan Halal" className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Peran dalam Rantai Pasok</label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden bg-white">
+                  <option>Supplier Bahan Baku</option>
+                  <option>Rumah Potong Hewan (RPH)</option>
+                  <option>Pabrik Pengolahan</option>
+                  <option>Ekspedisi Cold Chain</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Nomor Sertifikasi Halal BPJPH</label>
+                <input type="text" placeholder="ID32..." className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button 
+                onClick={() => {
+                  alert('Mitra berhasil ditambahkan ke jaringan rantai pasok!');
+                  setShowAddModal(false);
+                }}
+                className="flex-1 bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-xl font-bold text-xs"
+              >
+                Simpan & Daftarkan Node
+              </button>
+              <button onClick={() => setShowAddModal(false)} className="px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold">Batal</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

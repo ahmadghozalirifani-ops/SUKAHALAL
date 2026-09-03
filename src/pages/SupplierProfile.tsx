@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppHeader from '../components/AppHeader';
 import AppSidebar from '../components/AppSidebar';
-import TrafficLightStatus from '../components/TrafficLightStatus';
-import TraceabilityModal from '../components/TraceabilityModal';
+import { REAL_SUPPLIERS, REAL_PRODUCTS } from '../data/mockData';
 
 type UserRole = 'guest' | 'seller' | 'distributor' | 'customer';
 
@@ -17,253 +16,408 @@ export default function SupplierProfile({ onNavigate, userRole, onSetRole }: Pag
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('Ringkasan');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showTrace, setShowTrace] = useState(false);
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showDocPreview, setShowDocPreview] = useState<string | null>(null);
+
+  // Default featured supplier: PT Bunda Halal Foods Nusantara
+  const supplier = REAL_SUPPLIERS[0];
+  const supplierProducts = REAL_PRODUCTS.filter(p => p.supplierId === supplier.id);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <AppSidebar onNavigate={onNavigate} userRole={userRole} />
+      <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="supplier-catalog" />
+      
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />
         
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6">
-            <p className="text-sm text-gray-500 mb-2">Dashboard &gt; {t('Katalog Supplier')} &gt; {t('Profil Supplier')}</p>
+        {/* Navigation Breadcrumb Bar */}
+        <div className="bg-white border-b border-gray-200 px-6 py-2.5 flex items-center justify-between shrink-0 shadow-2xs">
+          <button 
+            onClick={() => onNavigate('supplier-catalog')}
+            className="flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-green-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+          >
+            <span>←</span> Kembali ke Katalog Supplier
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onNavigate('product-catalog')}
+              className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>📦</span> Produk Supplier ({supplierProducts.length})
+            </button>
+            <button 
+              onClick={() => onNavigate('supply-chain')}
+              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>🔗</span> Lacak di Rantai Pasok
+            </button>
+            <button 
+              onClick={() => onNavigate('verification')}
+              className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            >
+              <span>🛡️</span> Cek Status BPJPH
+            </button>
           </div>
+        </div>
 
-          {/* Hero Header */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <div className="h-32 bg-gradient-to-r from-green-600 to-green-400"></div>
-            <div className="px-6 pb-6 relative">
-              <div className="flex justify-between items-end">
-                <div className="flex gap-4 items-end -mt-12">
-                  <div className="w-24 h-24 bg-white rounded-full p-2 shadow-md">
-                    <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-4xl">
-                      🌾
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-6xl mx-auto space-y-6">
+
+            {/* Hero Header Card */}
+            <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 overflow-hidden">
+              <div className="h-44 relative bg-slate-800 overflow-hidden">
+                <img 
+                  src={supplier.image} 
+                  alt={supplier.name} 
+                  className="w-full h-full object-cover opacity-60"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-white text-xs font-mono">
+                  NIB: {supplier.nib}
+                </div>
+              </div>
+
+              <div className="px-8 pb-6 relative">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 -mt-14 mb-4">
+                  <div className="flex items-end gap-4">
+                    <div className="w-24 h-24 bg-white rounded-3xl p-2 shadow-xl border-2 border-gray-100 flex items-center justify-center text-4xl">
+                      {supplier.avatar}
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                        {supplier.name}
+                        <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full border border-emerald-300 font-bold">
+                          ✅ BPJPH Verified
+                        </span>
+                      </h1>
+                      <p className="text-xs text-gray-500 font-medium">
+                        📍 {supplier.address} • Berdiri Sejak {supplier.establishedYear}
+                      </p>
                     </div>
                   </div>
-                  <div className="pb-2">
-                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                      PT Berkah Agro
-                      <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                        ✅ BPJPH Verified
-                      </span>
-                    </h1>
-                    <p className="text-sm text-gray-500">📍 Jawa Barat • {t('Berdiri sejak')} 2015</p>
+
+                  {/* Right Actions & OMAX Score */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="text-center px-4 py-2 bg-emerald-50 rounded-2xl border border-emerald-200">
+                      <span className="text-xl font-extrabold text-emerald-800">{supplier.omax}%</span>
+                      <p className="text-[10px] text-emerald-600 font-bold uppercase">OMAX Score</p>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowContactDialog(true)}
+                      className="px-4 py-2.5 border border-gray-300 text-gray-800 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-xs"
+                    >
+                      <span>💬</span> Hubungi Supplier
+                    </button>
+
+                    <button 
+                      onClick={() => setShowAddModal(true)}
+                      className="px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+                    >
+                      <span>🤝</span> Gabung Rantai Pasok
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-4 items-center">
-                  <div className="text-center mr-4">
-                    <div className="relative inline-flex items-center justify-center">
-                      <svg className="w-14 h-14 transform -rotate-90">
-                        <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-gray-200" />
-                        <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray="150" strokeDashoffset="22" className="text-green-500" />
-                      </svg>
-                      <span className="absolute text-sm font-bold text-gray-700">85</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">OMAX Score</p>
+
+                {/* Key Badges Bar */}
+                <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-600">
+                  <div>
+                    <span className="text-gray-400">Penyelia Halal:</span> <strong className="text-gray-800">{supplier.halalSupervisor}</strong>
                   </div>
-                  <button className="px-4 py-2 border border-green-600 text-green-600 rounded-lg text-sm font-medium hover:bg-green-50">
-                    {t('Hubungi')}
-                  </button>
-                  <button 
-                    onClick={() => setShowAddModal(true)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
-                  >
-                    {t('Gabung ke Rantai Pasok')}
-                  </button>
+                  <span>•</span>
+                  <div>
+                    <span className="text-gray-400">No. Sertifikat BPJPH:</span> <strong className="font-mono text-emerald-700">{supplier.halalCertNumber}</strong>
+                  </div>
+                  <span>•</span>
+                  <div>
+                    <span className="text-gray-400">Rating:</span> <strong className="text-amber-500">★ {supplier.rating} ({supplier.reviews} Mitra B2B)</strong>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Tabs */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <div className="flex border-b border-gray-100">
-              {['Ringkasan', 'Produk', 'Dokumen', 'Ulasan'].map(tab => (
-                <button
-                  key={tab}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 ${activeTab === tab ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {t(tab)}
-                </button>
-              ))}
-            </div>
-            
-            <div className="p-6">
-              {activeTab === 'Ringkasan' && (
-                <div className="grid grid-cols-3 gap-8">
-                  <div className="col-span-2">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">{t('Tentang Perusahaan')}</h3>
-                    <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                      PT Berkah Agro adalah pemasok bahan baku pertanian berkualitas tinggi yang berfokus pada sayuran organik dan biji-bijian. Kami memastikan seluruh rantai pasok kami mematuhi standar kehalalan dan keamanan pangan (HACCP).
-                    </p>
-                    
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">{t('Kepatuhan Halal (Tieman Framework)')}</h3>
-                    <div className="space-y-4">
-                      <div className="border border-gray-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-700 mb-2">Control Activities</h4>
-                        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                          <li>Pemisahan fasilitas produksi halal dan non-halal (Dedicated)</li>
-                          <li>Sanitasi rutin dengan bahan pembersih bersertifikat</li>
-                          <li>Pelabelan identitas produk yang jelas</li>
-                        </ul>
-                      </div>
-                      <div className="border border-gray-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-700 mb-2">Assurance Activities</h4>
-                        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
-                          <li>Audit internal bulanan</li>
-                          <li>Sertifikasi BPJPH berlaku hingga 2026</li>
-                          <li>Pelatihan Sistem Jaminan Produk Halal untuk karyawan</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">{t('Informasi')}</h3>
-                    <div className="space-y-4">
+            {/* Tabs Bar */}
+            <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 overflow-hidden">
+              <div className="flex border-b border-gray-100">
+                {['Ringkasan', 'Katalog Produk', 'Dokumen & Sertifikasi', 'Audit Halal'].map(tab => (
+                  <button
+                    key={tab}
+                    className={`px-6 py-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${
+                      activeTab === tab 
+                        ? 'border-green-600 text-green-700 bg-green-50/50' 
+                        : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="p-8">
+                {/* Tab 1: Ringkasan */}
+                {activeTab === 'Ringkasan' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2 space-y-6">
                       <div>
-                        <p className="text-xs text-gray-500">{t('Alamat')}</p>
-                        <p className="text-sm text-gray-700">Jl. Raya Bogor Km 29, Depok, Jawa Barat</p>
+                        <h3 className="text-sm font-bold text-gray-900 mb-2">Profil & Kapasitas Produksi</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          {supplier.description}
+                        </p>
                       </div>
+
                       <div>
-                        <p className="text-xs text-gray-500">{t('Kategori Utama')}</p>
-                        <p className="text-sm text-gray-700">Bahan Baku, Sayuran Organik</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">{t('Sertifikasi')}</p>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          <span className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded">BPJPH</span>
-                          <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">HACCP</span>
-                          <span className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded">ISO 9001</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">{t('Status Sensor IoT')}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                          <span className="text-sm font-medium text-green-600">Online & Compliant</span>
+                        <h3 className="text-sm font-bold text-gray-900 mb-3">Penerapan Sistem Jaminan Produk Halal (SJPH Kemenag)</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                          <div className="border border-green-200 bg-green-50/40 rounded-2xl p-4 space-y-2">
+                            <h4 className="font-bold text-green-900 flex items-center gap-1.5">
+                              <span>🌾</span> Kriteria Bahan Baku & Traceability
+                            </h4>
+                            <ul className="text-gray-600 space-y-1.5 list-disc list-inside">
+                              <li>100% daging bersumber dari RPH terakreditasi NKV Level 1</li>
+                              <li>Bumbu rempah alami tanpa zat perasa hewani tidak jelas</li>
+                              <li>Batch traceability barcode pada setiap pasokan masuk</li>
+                            </ul>
+                          </div>
+
+                          <div className="border border-blue-200 bg-blue-50/40 rounded-2xl p-4 space-y-2">
+                            <h4 className="font-bold text-blue-900 flex items-center gap-1.5">
+                              <span>🏭</span> Fasilitas & Pemisahan Alat (Dedicated)
+                            </h4>
+                            <ul className="text-gray-600 space-y-1.5 list-disc list-inside">
+                              <li>Pabrik 100% bebas dari kontaminasi babi & najis berat</li>
+                              <li>Pembersihan sanitasi bersertifikat sebelum batch produksi</li>
+                              <li>Penyelia halal internal mengawasi setiap proses sterilisasi</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
 
-              {activeTab === 'Produk' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="border border-gray-200 rounded-lg p-4">
-                      <div className="w-full h-32 bg-gray-100 rounded-md mb-3 flex items-center justify-center text-4xl">
-                        {['🥬', '🥕', '🥔', '🌽', '🍅', '🧅'][i-1]}
-                      </div>
-                      <h4 className="font-semibold text-gray-800 mb-1">Produk {i}</h4>
-                      <p className="text-sm font-bold text-green-600 mb-3">Rp 15.000 / kg</p>
-                      <div className="flex justify-between items-center">
-                        <TrafficLightStatus status="green" />
+                    {/* Right Info Box */}
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs space-y-3">
+                        <h4 className="font-bold text-slate-800 border-b border-slate-200 pb-2">Kontak Operasional</h4>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-gray-400 block text-[11px]">Telepon / WhatsApp:</span>
+                            <span className="font-bold text-slate-800">{supplier.phone}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 block text-[11px]">Email Resmi:</span>
+                            <span className="font-mono text-slate-800">{supplier.email}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 block text-[11px]">Sertifikat Penyelia Halal:</span>
+                            <span className="font-medium text-slate-700">{supplier.supervisorCert}</span>
+                          </div>
+                        </div>
+
                         <button 
-                          onClick={() => setShowTrace(true)}
-                          className="text-xs text-blue-600 hover:underline"
+                          onClick={() => onNavigate('supply-chain')}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl transition-colors mt-2"
                         >
-                          Lihat Traceability
+                          Lihat Alur Supply Chain &rarr;
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
 
-              {activeTab === 'Dokumen' && (
-                <div className="space-y-4">
-                  {[
-                    {name: 'Sertifikat Halal BPJPH', exp: '12 Okt 2026', status: 'green'},
-                    {name: 'Sertifikat HACCP', exp: '05 Jan 2025', status: 'green'},
-                    {name: 'Hasil Uji Lab Terakhir', exp: 'Valid', status: 'green'},
-                  ].map((doc, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="text-2xl">📄</div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{doc.name}</h4>
-                          <p className="text-xs text-gray-500">Berlaku hingga: {doc.exp}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <TrafficLightStatus status={doc.status as any} />
-                        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200">Unduh</button>
-                      </div>
+                {/* Tab 2: Katalog Produk Supplier */}
+                {activeTab === 'Katalog Produk' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-gray-800">Daftar Produk yang Dipasok oleh {supplier.name}</h3>
+                      <button 
+                        onClick={() => onNavigate('product-catalog')}
+                        className="text-xs text-green-700 font-bold hover:underline"
+                      >
+                        Buka di Katalog Lengkap &rarr;
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
 
-              {activeTab === 'Ulasan' && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4 border-b border-gray-100 pb-6">
-                    <div className="text-4xl font-bold text-gray-800">4.8</div>
-                    <div>
-                      <div className="text-yellow-400 text-lg">⭐⭐⭐⭐⭐</div>
-                      <p className="text-sm text-gray-500">Berdasarkan 120 ulasan</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {supplierProducts.map(p => (
+                        <div key={p.id} className="p-4 bg-gray-50 rounded-2xl border border-gray-200 flex gap-4 items-center">
+                          <img src={p.image} alt={p.name} className="w-20 h-20 rounded-xl object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                              {p.category}
+                            </span>
+                            <h4 className="font-bold text-gray-900 text-xs truncate mt-1">{p.name}</h4>
+                            <p className="text-xs font-extrabold text-gray-800">Rp {p.price.toLocaleString('id-ID')}</p>
+                            <p className="text-[10px] text-gray-500 font-mono">No: {p.halalNumber}</p>
+                          </div>
+                          <button 
+                            onClick={() => onNavigate('product-detail')}
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg shrink-0"
+                          >
+                            Detail
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  {[1,2,3].map(i => (
-                    <div key={i} className="border-b border-gray-100 pb-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-gray-800">Pembeli {i}</span>
-                        <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Verified Purchase</span>
-                      </div>
-                      <div className="text-yellow-400 text-xs mb-2">⭐⭐⭐⭐⭐</div>
-                      <p className="text-sm text-gray-600">Kualitas sangat baik, pengiriman cepat, dan dokumentasi halal selalu disertakan dalam pengiriman.</p>
-                      <p className="text-xs text-gray-400 mt-2">2 hari yang lalu</p>
+                )}
+
+                {/* Tab 3: Dokumen & Sertifikasi */}
+                {activeTab === 'Dokumen & Sertifikasi' && (
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-gray-800">Berkas Legalitas & Sertifikasi Resmi</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                      {[
+                        { title: 'Sertifikat Halal BPJPH', desc: 'No. ID32110000123450223 (Berlaku s/d 2027)', icon: '📜', file: 'Sertifikat_BPJPH_BundaFoods.pdf' },
+                        { title: 'Manual SJPH Terakreditasi', desc: 'Pedoman Sistem Jaminan Produk Halal internal', icon: '📖', file: 'Manual_SJPH_2024.pdf' },
+                        { title: 'Sertifikat NKV & Sanitasi', desc: 'Nomor Kontrol Veteriner & Uji Mikrobiologi', icon: '🔬', file: 'NKV_Sanitasi_Lab.pdf' },
+                      ].map((doc, i) => (
+                        <div key={i} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col justify-between space-y-3">
+                          <div className="flex items-start gap-3">
+                            <span className="text-3xl">{doc.icon}</span>
+                            <div>
+                              <p className="font-bold text-slate-900">{doc.title}</p>
+                              <p className="text-[11px] text-slate-500">{doc.desc}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setShowDocPreview(doc.title)}
+                            className="w-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold py-1.5 rounded-xl text-[11px] transition-colors"
+                          >
+                            📄 Pratinjau Dokumen
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )}
+
+                {/* Tab 4: Audit Halal */}
+                {activeTab === 'Audit Halal' && (
+                  <div className="space-y-4 text-xs text-slate-600">
+                    <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl">
+                      <h4 className="font-bold text-emerald-900 mb-1">Hasil Audit Berkala LP3H & BPJPH (Nilai: A - Sangat Baik)</h4>
+                      <p className="text-emerald-700 text-xs">
+                        Audit kepatuhan halal terakhir diselesaikan pada 14 Agustus 2023. Tidak ditemukan adanya potensi ketidaksesuaian kritis (zero critical non-compliance).
+                      </p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-slate-800">Cek Status Langsung di SIHALAL:</span>
+                        <p className="text-slate-500">Terintegrasi secara langsung melalui REST API BPJPH Kemenag</p>
+                      </div>
+                      <button 
+                        onClick={() => onNavigate('verification')}
+                        className="bg-green-700 text-white font-bold px-4 py-2 rounded-xl text-xs"
+                      >
+                        Buka Verification Center
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
           </div>
         </div>
       </main>
 
-      {/* Modals */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">{t('Tambah ke Rantai Pasok')}</h3>
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Peran dalam Rantai Pasok</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                  <option>Pemasok Bahan Baku Utama</option>
-                  <option>Pemasok Bahan Tambahan</option>
-                  <option>Penyedia Kemasan</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai Kerjasama</label>
-                <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" />
-              </div>
-              <div className="flex items-start gap-2 mt-4">
-                <input type="checkbox" className="mt-1 rounded text-green-600 focus:ring-green-500" id="sla" />
-                <label htmlFor="sla" className="text-sm text-gray-600">
-                  Saya menyetujui SLA Halal Compliance yang mensyaratkan notifikasi otomatis jika status halal supplier berubah.
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Batal</button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">Kirim Permintaan</button>
-              </div>
-            </form>
+      {/* Contact Supplier Modal */}
+      {showContactDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-gray-900 text-sm">Hubungi {supplier.name}</h3>
+              <button onClick={() => setShowContactDialog(false)} className="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+            </div>
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
+              <p><strong>Telepon / WA:</strong> {supplier.phone}</p>
+              <p><strong>Email:</strong> {supplier.email}</p>
+              <p><strong>PIC Penyelia Halal:</strong> {supplier.halalSupervisor}</p>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  alert(`Membuka WhatsApp ke ${supplier.phone}...`);
+                  setShowContactDialog(false);
+                }}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs"
+              >
+                Chat WhatsApp
+              </button>
+              <button onClick={() => setShowContactDialog(false)} className="px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
           </div>
         </div>
       )}
 
-      {showTrace && (
-        <TraceabilityModal 
-          productName="Sayuran Organik"
-          history={[]}
-          onClose={() => setShowTrace(false)} 
-        />
+      {/* Add to Supply Chain Partnership Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-gray-900 text-sm">Pengajuan Kemitraan Rantai Pasok</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+            </div>
+            <p className="text-xs text-gray-600">
+              Ajukan integrasi pasokan bahan baku dari <strong>{supplier.name}</strong> ke alur inventaris dan pelacakan cold chain Anda.
+            </p>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Estimasi Kebutuhan Pasokan Bulanan</label>
+                <input type="text" defaultValue="500 Kg / Bulan" className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Catatan Tambahan untuk Penyelia Halal</label>
+                <textarea rows={2} defaultValue="Memerlukan pengiriman berpendingin dengan suhu -18°C rutin tiap hari Senin." className="w-full px-3 py-2 border border-gray-300 rounded-xl outline-hidden text-xs"></textarea>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button 
+                onClick={() => {
+                  alert('Pengajuan kemitraan berhasil dikirim ke supplier!');
+                  setShowAddModal(false);
+                }}
+                className="flex-1 bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-xl font-bold text-xs"
+              >
+                Kirim Pengajuan Kemitraan
+              </button>
+              <button onClick={() => setShowAddModal(false)} className="px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold">Batal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Preview Modal */}
+      {showDocPreview && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-gray-900 text-sm">Pratinjau: {showDocPreview}</h3>
+              <button onClick={() => setShowDocPreview(null)} className="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+            </div>
+            <div className="bg-slate-100 p-8 rounded-2xl text-center space-y-3 border border-slate-200">
+              <div className="text-5xl">📄</div>
+              <p className="text-xs font-bold text-slate-800">{showDocPreview}</p>
+              <p className="text-[11px] text-slate-500 font-mono">Status: Terverifikasi oleh SIHALAL BPJPH (Kemenag RI)</p>
+              <div className="inline-block bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">
+                ✓ Otentik & Sah Berlaku
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => {
+                  alert(`Mengunduh berkas ${showDocPreview}...`);
+                  setShowDocPreview(null);
+                }}
+                className="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-bold"
+              >
+                Unduh Berkas PDF
+              </button>
+              <button onClick={() => setShowDocPreview(null)} className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

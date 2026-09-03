@@ -36,14 +36,49 @@ const VerificationCenter: React.FC<PageProps> = ({ onNavigate, userRole, onSetRo
            ]} 
         />
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="flex justify-between items-center mb-4">
-             <h1 className="text-2xl font-bold text-gray-800">{t('verification.title', 'Pusat Verifikasi Dokumen & Sertifikasi')}</h1>
-             <div className="flex gap-3">
-                 <button onClick={() => setShowTraceModal(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-2">
-                   🔍 Cek Traceability QR
+          {/* Quick Navigation Strip */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onNavigate('dashboard')}
+                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              >
+                <span>←</span> Dashboard
+              </button>
+              <span className="text-xs text-gray-400 font-bold">|</span>
+              <span className="text-xs font-bold text-gray-800">Pusat Verifikasi Dokumen & Sertifikasi BPJPH</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => onNavigate('product-catalog')}
+                className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>📦</span> Katalog Produk
+              </button>
+              <button 
+                onClick={() => onNavigate('supplier-catalog')}
+                className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>🏢</span> Katalog Supplier
+              </button>
+              <button 
+                onClick={() => onNavigate('supply-chain')}
+                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span>🚚</span> Rantai Pasok
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+             <h1 className="text-xl font-bold text-gray-900">{t('verification.title', 'Pusat Verifikasi Dokumen & Sertifikasi')}</h1>
+             <div className="flex gap-2">
+                 <button onClick={() => setShowTraceModal(true)} className="bg-white border border-gray-300 text-gray-700 px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                   <span>🔍</span> Cek Traceability QR
                  </button>
-                 <button onClick={() => onNavigate('upload-dokumen')} className={`bg-${themeColor}-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-${themeColor}-700 transition-colors flex items-center gap-2`}>
-                   📄 Upload Dokumen Baru
+                 <button onClick={() => onNavigate('upload-dokumen')} className={`bg-${themeColor}-700 hover:bg-${themeColor}-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5`}>
+                   <span>📄</span> Upload Dokumen Baru
                  </button>
              </div>
           </div>
