@@ -24,172 +24,182 @@ export default function LoginSeller({ onNavigate, onSetRole }: Props) {
   const currentLang = i18n.language === 'en' ? 'EN' : 'ID';
 
   return (
-    <div className="min-h-screen bg-[#fafcfb] font-sans flex flex-col justify-between relative overflow-hidden">
-      {/* Background Graphic Elements */}
-      <div className="absolute top-1/4 right-12 w-32 h-32 rounded-full border-4 border-amber-100/50 opacity-40 pointer-events-none" />
-      <div className="absolute top-12 right-24 text-6xl text-amber-200/40 pointer-events-none select-none">🌙</div>
-      <div className="absolute bottom-16 right-16 opacity-10 pointer-events-none select-none text-8xl">📦</div>
+    <div className="min-h-screen flex font-sans" style={{ background: '#FAFAF8' }}>
 
-      {/* Top Navigation Bar with Logo */}
-      <header className="w-full px-8 py-5 flex items-center justify-between z-20">
-        <div className="flex items-center">
+      {/* ─── Left Panel: Branding ─── */}
+      <div
+        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(160deg, #064E3B 0%, #0D7A55 50%, #065F46 100%)',
+        }}
+      >
+        <div className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none" style={{ background: 'rgba(52,211,153,0.12)', filter: 'blur(60px)' }} />
+        <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full pointer-events-none" style={{ background: 'rgba(16,185,129,0.15)', filter: 'blur(50px)' }} />
+
+        <div className="relative z-10">
           <Logo size="md" onClick={() => onNavigate('landing')} />
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-1 font-semibold text-gray-700 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-2xs">
-            <button 
-              onClick={() => i18n.changeLanguage('id')} 
-              className={`cursor-pointer ${currentLang === 'ID' ? 'text-green-700 underline font-bold' : 'text-gray-400 hover:text-gray-700'}`}
-            >
-              ID
-            </button>
-            <span className="text-gray-300">|</span>
-            <button 
-              onClick={() => i18n.changeLanguage('en')} 
-              className={`cursor-pointer ${currentLang === 'EN' ? 'text-green-700 underline font-bold' : 'text-gray-400 hover:text-gray-700'}`}
-            >
-              EN
-            </button>
-          </div>
-          <button 
-            onClick={() => onNavigate('tutorial')} 
-            className="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-xs text-gray-500 hover:bg-gray-100 cursor-pointer"
-            title="Bantuan"
-          >
-            ?
-          </button>
-        </div>
-      </header>
 
-      {/* Main Login Card matching the uploaded screenshot */}
-      <main className="flex-1 flex items-center justify-center px-4 py-6 z-10">
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 w-full max-w-md md:max-w-lg">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              Masuk sebagai Penjual (Seller)
+        <div className="relative z-10 space-y-6">
+          <div>
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4"
+              style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)' }}
+            >
+              🏪 Portal Produsen & UMKM
+            </div>
+            <h1 className="font-heading text-4xl font-black text-white leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Kelola Bisnis Halal<br />Lebih Profesional
             </h1>
-            <p className="text-gray-500 text-sm">
-              Silakan masuk untuk mengelola inventaris Halal Anda.
+            <p className="text-emerald-200 text-sm mt-3 leading-relaxed">
+              Dashboard terpadu untuk manajemen produk, sertifikasi BPJPH, rantai pasok, dan laporan penjualan UMKM Anda.
             </p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { icon: '📦', text: 'Manajemen SKU & stok bahan baku (BOM)' },
+              { icon: '🛡️', text: 'Proses sertifikasi SJPH & unggah dokumen' },
+              { icon: '📊', text: 'Laporan penjualan & analitik produk' },
+              { icon: '🚚', text: 'Integrasi rantai pasok & logistik halal' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 text-sm text-emerald-100">
+                <span className="text-base">{item.icon}</span>
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Halal credential mini card */}
+          <div
+            className="rounded-2xl p-4"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-1">Terintegrasi dengan</div>
+            <div className="text-white text-sm font-semibold">SIHALAL BPJPH Kementerian Agama RI</div>
+            <div className="text-emerald-300 text-xs mt-0.5">Standar HAS 23000 & Fatwa MUI</div>
+          </div>
+        </div>
+
+        <div className="relative z-10 text-emerald-400 text-[11px]">
+          © {new Date().getFullYear()} SUKAHALAL. Platform Halal Terpadu Indonesia.
+        </div>
+      </div>
+
+      {/* ─── Right Panel: Form ─── */}
+      <div className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-12">
+        <div className="lg:hidden flex items-center justify-between mb-12">
+          <Logo size="md" onClick={() => onNavigate('landing')} />
+          <div className="flex items-center gap-1 text-xs font-semibold">
+            <button onClick={() => i18n.changeLanguage('id')} className={`px-2 py-1 rounded cursor-pointer ${currentLang === 'ID' ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>ID</button>
+            <span className="text-slate-200">|</span>
+            <button onClick={() => i18n.changeLanguage('en')} className={`px-2 py-1 rounded cursor-pointer ${currentLang === 'EN' ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>EN</button>
+          </div>
+        </div>
+
+        <div className="max-w-sm w-full mx-auto">
+          <div className="flex items-center gap-2 text-xs text-slate-400 mb-8">
+            <button onClick={() => onNavigate('landing')} className="hover:text-slate-700 transition-colors cursor-pointer">Beranda</button>
+            <span>/</span>
+            <span className="text-slate-600 font-medium">Masuk sebagai Penjual</span>
+          </div>
+
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ background: 'rgba(13,122,85,0.08)', color: '#0D7A55' }}>
+              🏪 Portal Produsen / UMKM
+            </div>
+            <h2 className="font-heading text-2xl font-black text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Masuk ke Dashboard Anda
+            </h2>
+            <p className="text-slate-500 text-sm mt-1">Kelola bisnis halal dengan lebih mudah dan terstruktur.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Email / Username</label>
-              <input 
-                type="text" 
-                defaultValue="mail@seller.id" 
-                required 
-                className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all" 
-                placeholder="Masukan email atau username Anda" 
-              />
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email / NIB Usaha</label>
+              <input type="text" required placeholder="nama@email.com atau NIB" className="input-elegant" defaultValue="admin@bundahalal.com" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Kata Sandi (Password)</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700">Password</label>
+                <button type="button" className="text-[11px] font-semibold cursor-pointer" style={{ color: '#0D7A55' }}>Lupa password?</button>
+              </div>
               <div className="relative">
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  defaultValue="password123" 
-                  required 
-                  className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10 transition-all" 
-                  placeholder="Masukan kata sandi Anda" 
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  className="input-elegant pr-10"
+                  defaultValue="password123"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors text-sm"
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Nomor NPWP (15 Digit)</label>
-              <input 
-                type="text" 
-                defaultValue="12.345.678.9-012.345" 
-                className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all" 
-                placeholder="Masukan 15 digit NPWP Perusahaan" 
+            {/* OTP preview */}
+            <div className="rounded-2xl p-4" style={{ background: '#F0FDF4', border: '1px solid rgba(13,122,85,0.15)' }}>
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-700 mb-2">Kode OTP Terkirim ke +62 812 ****</div>
+              <div className="flex gap-2 justify-center">
+                {otp.map((digit, i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-12 rounded-xl flex items-center justify-center text-lg font-black text-emerald-800"
+                    style={{ background: 'white', border: '1.5px solid rgba(13,122,85,0.2)', boxShadow: '0 1px 4px rgba(13,122,85,0.1)' }}
+                  >
+                    {digit}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-emerald-700 text-center mt-2">Kode aktif selama 5 menit</p>
+            </div>
+
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+                className="rounded accent-emerald-600 cursor-pointer"
               />
-            </div>
+              <span className="text-xs text-slate-600">Ingat perangkat ini selama 30 hari</span>
+            </label>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Kode OTP BPJPH</label>
-              <div className="flex gap-2 items-center">
-                <div className="flex gap-1.5 flex-1">
-                  {otp.map((d, i) => (
-                    <input 
-                      key={i} 
-                      type="text" 
-                      maxLength={1} 
-                      value={d} 
-                      onChange={e => {
-                        const next = [...otp];
-                        next[i] = e.target.value;
-                        setOtp(next);
-                      }}
-                      className="w-10 h-10 text-center text-base font-bold bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 outline-none" 
-                    />
-                  ))}
-                </div>
-                <button 
-                  type="button" 
-                  className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
-                >
-                  ⏱ Kirim OTP (60s)
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input 
-                  type="checkbox" 
-                  checked={remember} 
-                  onChange={e => setRemember(e.target.checked)} 
-                  className="w-4 h-4 accent-amber-600 rounded" 
-                />
-                <span className="text-gray-700 font-medium">Ingat saya</span>
-              </label>
-              <button 
-                type="button" 
-                onClick={() => alert('Link pemulihan kata sandi telah dikirim ke email Anda.')} 
-                className="text-gray-600 hover:text-amber-700 underline font-medium cursor-pointer"
-              >
-                Lupa Kata Sandi?
-              </button>
-            </div>
-
-            {/* Amber golden button from screenshot */}
-            <button 
-              type="submit" 
-              className="w-full mt-2 bg-[#d97706] hover:bg-[#b45309] text-white font-bold py-3 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl text-sm font-bold text-white transition-all cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #0D7A55, #059669)',
+                boxShadow: '0 4px 20px rgba(13,122,85,0.35)',
+              }}
             >
-              Masuk Sekarang →
+              Masuk ke Dashboard →
             </button>
-
-            <p className="text-center text-xs text-gray-500 pt-2">
-              Belum punya akun?{' '}
-              <button 
-                type="button" 
-                onClick={() => onNavigate('register')} 
-                className="text-gray-900 font-bold underline hover:text-green-700 cursor-pointer"
-              >
-                Daftar
-              </button>
-            </p>
           </form>
-        </div>
-      </main>
 
-      {/* Footer matching screenshot */}
-      <footer className="w-full text-center py-4 text-xs text-gray-400 z-10 flex items-center justify-center gap-2">
-        <span>© 2024 Halal Supply-Chain Indonesia. Semua hak dilindungi.</span>
-        <span className="text-green-600">🛡️</span>
-        <span className="text-blue-600">✓</span>
-      </footer>
+          <p className="text-center text-sm text-slate-500 mt-6">
+            Belum punya akun bisnis?{' '}
+            <button onClick={() => onNavigate('register')} className="font-bold cursor-pointer hover:underline" style={{ color: '#0D7A55' }}>
+              Daftarkan UMKM
+            </button>
+          </p>
+
+          <button onClick={() => onNavigate('landing')} className="w-full mt-4 text-center text-xs text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+            ← Kembali ke Beranda Publik
+          </button>
+        </div>
+      </div>
+
+      <div className="fixed top-5 right-6 hidden lg:flex items-center gap-1 text-xs font-semibold">
+        <button onClick={() => i18n.changeLanguage('id')} className={`px-2 py-1 rounded cursor-pointer ${currentLang === 'ID' ? 'text-emerald-700 font-bold' : 'text-slate-400 hover:text-slate-700'}`}>ID</button>
+        <span className="text-slate-300">|</span>
+        <button onClick={() => i18n.changeLanguage('en')} className={`px-2 py-1 rounded cursor-pointer ${currentLang === 'EN' ? 'text-emerald-700 font-bold' : 'text-slate-400 hover:text-slate-700'}`}>EN</button>
+      </div>
     </div>
   );
 }

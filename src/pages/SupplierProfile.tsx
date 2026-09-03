@@ -24,7 +24,7 @@ export default function SupplierProfile({ onNavigate, userRole, onSetRole }: Pag
   const supplierProducts = REAL_PRODUCTS.filter(p => p.supplierId === supplier.id);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="supplier-catalog" />
       
       <main className="flex-1 flex flex-col h-screen overflow-hidden">

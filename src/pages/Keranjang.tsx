@@ -99,7 +99,7 @@ export default function Keranjang({ onNavigate, userRole, onSetRole }: PageProps
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fafcfb] font-sans text-slate-800">
+    <div className="flex h-screen overflow-hidden font-sans text-slate-800" style={{ background: '#FAFAF8' }}>
       {userRole !== 'guest' && <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="cart" />}
       
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -112,77 +112,63 @@ export default function Keranjang({ onNavigate, userRole, onSetRole }: PageProps
         />
         
         {/* Navigation Action Strip */}
-        <div className="bg-white border-b border-emerald-100/80 px-6 py-2.5 flex items-center justify-between shrink-0 shadow-2xs">
+        <div className="border-b px-6 py-2.5 flex items-center justify-between shrink-0" style={{ background: 'white', borderColor: 'rgba(226,232,240,0.7)', boxShadow: '0 1px 0 rgba(15,23,42,0.04)' }}>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => onNavigate('product-catalog')}
-              className="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors border border-slate-200 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+              style={{ background: '#F8FAFC', color: '#475569', border: '1px solid #E8EDF2' }}
             >
-              <span>←</span> Belanja Lagi di Katalog
+              ← Belanja Lagi
             </button>
-            <span className="text-xs text-slate-400 font-bold">|</span>
-            <span className="text-xs font-black text-slate-800">Checkout Amanah & Terverifikasi</span>
+            <span className="text-xs font-semibold text-slate-800">Checkout Amanah & Terverifikasi</span>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => onNavigate('supply-chain')}
-              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-blue-200 cursor-pointer"
-            >
-              <span>🚚</span> Info Armada Cold Chain
-            </button>
-          </div>
+          <button 
+            onClick={() => onNavigate('supply-chain')}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+            style={{ background: 'rgba(8,145,178,0.08)', color: '#0891B2', border: '1px solid rgba(8,145,178,0.2)' }}
+          >
+            🚚 Info Armada Cold Chain
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full space-y-6">
           
           {/* Step Progression Bar */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between max-w-2xl mx-auto">
-            <div className={`flex items-center gap-2 text-xs font-black ${step >= 1 ? 'text-emerald-700' : 'text-slate-400'}`}>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${step >= 1 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                1
-              </div>
-              <span>Item & Kurir</span>
-            </div>
-            
-            <div className={`h-1 flex-1 mx-3 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-
-            <div className={`flex items-center gap-2 text-xs font-black ${step >= 2 ? 'text-emerald-700' : 'text-slate-400'}`}>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${step >= 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                2
-              </div>
-              <span>Bayar Syariah</span>
-            </div>
-
-            <div className={`h-1 flex-1 mx-3 rounded-full ${step === 3 ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-
-            <div className={`flex items-center gap-2 text-xs font-black ${step === 3 ? 'text-emerald-700' : 'text-slate-400'}`}>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${step === 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                3
-              </div>
-              <span>Selesai & Lacak</span>
-            </div>
+          <div className="rounded-3xl p-5 flex items-center justify-between max-w-2xl mx-auto" style={{ background: 'white', border: '1px solid #E8EDF2', boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
+            {[{ num: 1, label: 'Item & Kurir' }, { num: 2, label: 'Bayar Syariah' }, { num: 3, label: 'Selesai & Lacak' }].map((s, i) => (
+              <React.Fragment key={s.num}>
+                <div className={`flex items-center gap-2 text-xs font-semibold ${step >= s.num ? '' : ''}`} style={{ color: step >= s.num ? '#0D7A55' : '#94A3B8' }}>
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
+                    style={step >= s.num ? { background: 'linear-gradient(135deg, #0D7A55, #059669)', color: 'white', boxShadow: '0 2px 8px rgba(13,122,85,0.3)' } : { background: '#F1F5F9', color: '#94A3B8' }}
+                  >
+                    {step > s.num ? '✓' : s.num}
+                  </div>
+                  <span>{s.label}</span>
+                </div>
+                {i < 2 && <div className="flex-1 h-0.5 mx-3 rounded-full transition-all" style={{ background: step > s.num ? '#0D7A55' : '#E8EDF2' }} />}
+              </React.Fragment>
+            ))}
           </div>
 
           {/* Free Shipping Cold-Chain Progress */}
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-4 rounded-3xl text-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-4 rounded-3xl text-white flex flex-col sm:flex-row items-center justify-between gap-3" style={{ background: 'linear-gradient(135deg, #0A1628 0%, #0D2B1A 50%, #0A1628 100%)', border: '1px solid rgba(74,222,128,0.15)' }}>
             <div className="flex items-center gap-3">
               <span className="text-3xl">❄️🚚</span>
               <div>
-                <span className="text-xs font-black tracking-wide uppercase text-emerald-200 block">
-                  Bebas Ongkir Cold Chain
-                </span>
-                <p className="text-xs text-white font-medium">
+                <span className="text-xs font-black tracking-wide uppercase block" style={{ color: '#4ADE80' }}>Bebas Ongkir Cold Chain</span>
+                <p className="text-xs font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
                   {subtotal >= 150000 
-                    ? '🎉 Asik! Pesananmu memenuhi syarat Bebas Ongkir Truk Berpendingin -18°C!' 
-                    : `Tambah Rp ${(150000 - subtotal).toLocaleString('id-ID')} lagi untuk dapat Bebas Ongkir Cold-Chain!`}
+                    ? '🎉 Pesananmu memenuhi syarat Bebas Ongkir Truk Berpendingin -18°C!' 
+                    : `Tambah Rp ${(150000 - subtotal).toLocaleString('id-ID')} lagi untuk Bebas Ongkir Cold-Chain!`}
                 </p>
               </div>
             </div>
-            <div className="w-full sm:w-48 bg-white/20 rounded-full h-2 overflow-hidden border border-white/30">
+            <div className="w-full sm:w-48 rounded-full h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
               <div 
-                className="bg-amber-300 h-full transition-all duration-500 rounded-full" 
-                style={{ width: `${Math.min(100, (subtotal / 150000) * 100)}%` }}
+                className="h-full transition-all duration-500 rounded-full" 
+                style={{ width: `${Math.min(100, (subtotal / 150000) * 100)}%`, background: 'linear-gradient(90deg, #4ADE80, #34D399)' }}
               ></div>
             </div>
           </div>

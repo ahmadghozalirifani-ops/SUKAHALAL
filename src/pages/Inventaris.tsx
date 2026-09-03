@@ -28,7 +28,7 @@ export default function Inventaris({ onNavigate, userRole, onSetRole }: Props) {
   const [inventory, setInventory] = useState(mockInventory);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="inventaris" />
       
       <main className="flex-1 flex flex-col overflow-hidden">

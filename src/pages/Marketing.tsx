@@ -26,7 +26,7 @@ export default function Marketing({ onNavigate, userRole, onSetRole }: Props) {
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="marketing" />
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      <main className="flex-1 overflow-y-auto" style={{ background: '#FAFAF8' }}>
         <AppHeader 
           onNavigate={onNavigate} 
           userRole={userRole} 

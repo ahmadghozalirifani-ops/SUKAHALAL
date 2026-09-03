@@ -34,7 +34,7 @@ export default function Notifikasi({ onNavigate, userRole, onSetRole }: PageProp
   const unreadCount = notifList.filter(n => !n.read).length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="notifikasi" />
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <AppHeader onNavigate={onNavigate} userRole={userRole} onSetRole={onSetRole} />

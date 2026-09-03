@@ -130,7 +130,7 @@ export default function SupplyChain({ onNavigate, userRole, onSetRole }: PagePro
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+    <div className="flex h-screen overflow-hidden font-sans text-slate-800" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} currentPage="supply-chain" userRole={userRole} />
       
       <div className="flex-1 flex flex-col overflow-hidden">

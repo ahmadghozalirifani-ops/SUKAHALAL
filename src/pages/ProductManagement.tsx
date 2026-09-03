@@ -19,7 +19,7 @@ export default function ProductManagement({ onNavigate, userRole, onSetRole }: P
 
   if (userRole !== 'seller') {
     return (
-      <div className="flex h-screen overflow-hidden bg-slate-50">
+      <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
         <AppSidebar onNavigate={onNavigate} userRole={userRole} />
         <main className="flex-1 flex items-center justify-center p-6">
           <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-slate-200">
@@ -51,7 +51,7 @@ export default function ProductManagement({ onNavigate, userRole, onSetRole }: P
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} userRole={userRole} />
       
       <main className="flex-1 flex flex-col overflow-hidden">

@@ -28,70 +28,70 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
   };
 
   const renderGuestDashboard = () => (
-    <div className="w-full min-h-screen bg-[#fafcfb] font-sans text-slate-800">
+    <div className="w-full min-h-screen font-sans text-slate-800" style={{ background: '#FAFAF8' }}>
       {/* Top Header with Tiered Login */}
       <AppHeader onNavigate={onNavigate} userRole="guest" onSetRole={onSetRole} />
 
       {/* Live System Activity Ticker */}
-      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white py-2 px-6 text-xs font-semibold overflow-hidden border-b border-emerald-800 flex items-center justify-between">
+      <div className="py-2 px-6 text-xs font-medium overflow-hidden border-b flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #0A1628 0%, #0D2B1A 50%, #0A1628 100%)', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)' }}>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
+          <span className="status-live"></span>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest" style={{ background: 'rgba(34,197,94,0.15)', color: '#4ADE80', border: '1px solid rgba(34,197,94,0.25)' }}>
             Sistem Terpadu
           </span>
         </div>
-        <div className="truncate text-emerald-100 text-xs px-4">
-          Jaminan Kehalalan Terverifikasi: <strong>45.000+</strong> produk terdata resmi di SIHALAL BPJPH • 🚚 Pemantauan logistik umum & berpendingin aktif mengawal kebersihan wadah bebas kontaminasi.
+        <div className="truncate text-center px-4" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          Jaminan Kehalalan Terverifikasi: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>45.000+</strong> produk terdata resmi di SIHALAL BPJPH • 🚚 Pemantauan logistik aktif
         </div>
-        <button onClick={() => onNavigate('verification')} className="hidden sm:inline text-xs text-emerald-300 font-bold hover:underline shrink-0">
-          Cek Dokumen &rarr;
+        <button onClick={() => onNavigate('verification')} className="hidden sm:inline text-xs font-semibold hover:underline shrink-0" style={{ color: '#4ADE80' }}>
+          Cek Dokumen →
         </button>
       </div>
 
-      {/* Hero: Natural, Clear & Authoritative Halal Assurance Banner */}
-      <div className="relative bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 py-16 px-6 text-center text-white overflow-hidden">
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none"></div>
-        <div className="absolute -bottom-12 right-12 w-64 h-64 bg-teal-500/15 blur-2xl rounded-full pointer-events-none"></div>
+      {/* Hero */}
+      <div className="relative py-16 px-6 text-center text-white overflow-hidden" style={{ background: 'linear-gradient(160deg, #0A1628 0%, #0D2B1A 50%, #0A1628 100%)' }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full pointer-events-none" style={{ background: 'rgba(13,122,85,0.15)', filter: 'blur(60px)' }}></div>
         
-        <div className="max-w-4xl mx-auto relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1 rounded-full text-xs font-bold text-emerald-200 border border-white/20">
+        <div className="max-w-4xl mx-auto relative z-10 space-y-5">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}>
             <span>🛡️</span> Sistem Jaminan Produk Halal (SJPH) Terintegrasi BPJPH Kemenag RI
           </div>
           
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Ekosistem Jaminan Halal Terpadu <br />
-            <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black tracking-tight leading-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Ekosistem Jaminan Halal Terpadu
+            <br />
+            <span style={{ background: 'linear-gradient(135deg, #4ADE80, #34D399, #FCD34D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               Dari Sumber Bahan Hingga Meja Konsumen
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-2xl mx-auto font-medium leading-relaxed">
-            Menghubungkan UMKM, produsen bahan baku, dan ekspedisi logistik dalam satu platform transparansi. Mengawal kepatuhan syariat, bebas najis, dan mencegah kontaminasi silang secara menyeluruh.
+          <p className="text-sm max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+            Menghubungkan UMKM, produsen bahan baku, dan ekspedisi logistik dalam satu platform transparansi halal yang terintegrasi.
           </p>
 
           {/* Quick Entry Portals */}
           <div className="flex flex-wrap gap-2.5 justify-center pt-3">
             <button 
               onClick={() => onSetRole('seller')} 
-              className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              className="text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer" style={{ background: 'rgba(13,122,85,0.8)', border: '1px solid rgba(74,222,128,0.3)' }}
             >
               <span>🏪</span> Masuk sebagai Penjual UMKM
             </button>
             <button 
               onClick={() => onSetRole('distributor')} 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              className="text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer" style={{ background: 'rgba(29,78,216,0.8)', border: '1px solid rgba(96,165,250,0.3)' }}
             >
               <span>🚚</span> Masuk sebagai Distributor Logistik
             </button>
             <button 
               onClick={() => onSetRole('customer')} 
-              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              className="text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer" style={{ background: 'rgba(124,58,237,0.8)', border: '1px solid rgba(167,139,250,0.3)' }}
             >
               <span>🛍️</span> Masuk sebagai Pembeli
             </button>
             <button 
               onClick={() => onNavigate('product-catalog')} 
-              className="bg-white/15 hover:bg-white/25 text-white px-5 py-2.5 rounded-xl font-bold text-xs border border-white/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
             >
               <span>📦</span> Jelajahi Katalog Terverifikasi
             </button>
@@ -124,68 +124,39 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {REAL_PRODUCTS.slice(0, 6).map(product => (
-              <div 
-                key={product.id} 
-                className="bg-white border border-slate-200/80 rounded-3xl p-3.5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between group"
-              >
-                {/* Photo & Tag */}
-                <div className="h-44 bg-slate-100 rounded-2xl overflow-hidden relative">
+              <div key={product.id} className="card-premium group cursor-pointer" onClick={() => onNavigate('product-detail')}>
+                <div className="h-44 rounded-t-2xl overflow-hidden relative" style={{ background: '#F1F5F9' }}>
                   <img 
                     src={product.image} 
                     alt={product.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     loading="lazy"
                   />
-                  <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white">
+                  <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg text-[10px] font-bold text-white" style={{ background: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(8px)' }}>
                     {product.category}
                   </div>
                   {product.halalCert && (
-                    <div className="absolute top-2 right-2 bg-emerald-600/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-black text-white shadow-sm border border-emerald-400">
-                      ✓ BPJPH
-                    </div>
+                    <div className="badge-halal absolute top-2.5 right-2.5">✓ BPJPH</div>
                   )}
-                  <div className="absolute bottom-2 left-2 right-2 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-md text-white text-[10px] flex items-center justify-between font-mono">
+                  <div className="absolute bottom-2 left-2 right-2 px-2 py-0.5 rounded-md text-white text-[10px] flex items-center justify-between font-mono" style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(6px)' }}>
                     <span>EAN: {product.barcode}</span>
-                    <span className="text-amber-300 font-bold">★ {product.rating}</span>
+                    <span style={{ color: '#FCD34D' }}>★ {product.rating}</span>
                   </div>
                 </div>
-
-                {/* Details */}
-                <div className="p-2 pt-3 flex-1 flex flex-col justify-between">
+                <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-bold text-sm text-slate-900 leading-snug line-clamp-1 group-hover:text-emerald-700 transition-colors">
-                      {product.name}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 truncate mt-0.5 font-medium">
-                      🏢 {product.supplier}
-                    </p>
-                    <p className="text-[10px] text-emerald-700 font-mono mt-1 font-semibold">
-                      No: {product.halalNumber}
-                    </p>
+                    <h4 className="font-bold text-sm text-slate-900 leading-snug line-clamp-1 group-hover:text-emerald-700 transition-colors">{product.name}</h4>
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">{product.supplier}</p>
+                    <p className="text-[10px] font-mono mt-1" style={{ color: '#0D7A55' }}>No: {product.halalNumber}</p>
                   </div>
-
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid #F1F5F9' }}>
                     <div>
                       <span className="text-[10px] text-slate-400 block">Harga</span>
-                      <span className="text-sm font-extrabold text-slate-900">
-                        Rp {product.price.toLocaleString('id-ID')}
-                      </span>
+                      <span className="text-sm font-black text-slate-900">Rp {product.price.toLocaleString('id-ID')}</span>
                     </div>
-
                     <div className="flex gap-1.5">
-                      <button 
-                        onClick={() => setGuestScanQR(product.id)}
-                        className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 text-xs transition-colors"
-                        title="Scan QR Traceability"
-                      >
-                        📱
-                      </button>
-                      <button 
-                        onClick={() => onNavigate('product-detail')}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
-                      >
-                        Detail &rarr;
-                      </button>
+                      <button onClick={e => { e.stopPropagation(); setGuestScanQR(product.id); }} className="p-2 rounded-xl text-xs transition-all cursor-pointer" style={{ background: '#F8FAFC', border: '1px solid #E8EDF2', color: '#64748B' }}>📱</button>
+                      <button onClick={e => { e.stopPropagation(); onNavigate('product-detail'); }} className="btn-primary text-[11px] py-1.5 px-3 rounded-xl" style={{ boxShadow: '0 2px 8px rgba(13,122,85,0.25)' }}>Detail →</button>
                     </div>
                   </div>
                 </div>

@@ -27,7 +27,7 @@ export default function SupplierCatalog({ onNavigate, userRole, onSetRole }: Pag
   const regions = ['Semua', 'Jawa Barat', 'Aceh', 'D.I. Yogyakarta', 'Nusa Tenggara Barat'];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: '#FAFAF8' }}>
       <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="supplier-catalog" />
       
       <main className="flex-1 flex flex-col h-screen overflow-hidden">

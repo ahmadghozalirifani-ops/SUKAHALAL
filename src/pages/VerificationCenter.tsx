@@ -26,7 +26,7 @@ const VerificationCenter: React.FC<PageProps> = ({ onNavigate, userRole, onSetRo
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar onNavigate={onNavigate} currentRoute="verification" userRole={userRole} />
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col" style={{ background: '#FAFAF8' }}>
         <AppHeader 
            onNavigate={onNavigate}
            userRole={userRole} 

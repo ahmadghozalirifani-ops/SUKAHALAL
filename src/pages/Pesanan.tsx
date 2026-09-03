@@ -129,7 +129,7 @@ export default function Pesanan({ onNavigate, userRole, onSetRole }: Props) {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fafcfb] font-sans text-slate-800">
+    <div className="flex h-screen overflow-hidden font-sans text-slate-800" style={{ background: '#FAFAF8' }}>
       {userRole !== 'guest' && <AppSidebar onNavigate={onNavigate} userRole={userRole} currentPage="pesanan" />}
       
       <main className="flex-1 flex flex-col overflow-hidden">
