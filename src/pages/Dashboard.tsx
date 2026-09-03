@@ -23,98 +23,71 @@ const Dashboard: React.FC<PageProps> = ({ onNavigate, userRole, onSetRole }) => 
 
   const renderGuestDashboard = () => (
     <div className="w-full min-h-screen bg-[#fafcfb] font-sans text-slate-800">
-      {/* Top Header for Guest */}
-      <header className="border-b border-emerald-100 bg-white/90 backdrop-blur-md sticky top-0 z-30 px-6 py-3 flex items-center justify-between shadow-2xs">
-        <Logo size="md" onClick={() => onNavigate('landing')} />
+      {/* Top Header with Tiered Login */}
+      <AppHeader onNavigate={onNavigate} userRole="guest" onSetRole={onSetRole} />
 
-        <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-600">
-          <button onClick={() => onNavigate('product-catalog')} className="px-3 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-            🔥 Katalog Produk
-          </button>
-          <button onClick={() => onNavigate('supplier-catalog')} className="px-3 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-            🏢 Supplier Mitra
-          </button>
-          <button onClick={() => onNavigate('supply-chain')} className="px-3 py-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors">
-            🚚 Rantai Pasok IoT
-          </button>
-          <button onClick={() => onNavigate('verification')} className="px-3 py-1.5 rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-colors">
-            🛡️ Cek SIHALAL
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <LanguageToggle />
-          <button 
-            onClick={() => onNavigate('landing')} 
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors"
-          >
-            ← Beranda Utama
-          </button>
-        </div>
-      </header>
-
-      {/* Live Marquee Ticker */}
-      <div className="bg-gradient-to-r from-emerald-900 via-green-800 to-teal-900 text-white py-2 px-6 text-xs font-semibold overflow-hidden border-b border-emerald-700 flex items-center justify-between">
+      {/* Live System Activity Ticker */}
+      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-900 text-white py-2 px-6 text-xs font-semibold overflow-hidden border-b border-emerald-800 flex items-center justify-between">
         <div className="flex items-center gap-2 shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span className="bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
-            Live Halal Feed
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
+            Sistem Terpadu
           </span>
         </div>
-        <div className="truncate text-emerald-100 text-[11px] px-4">
-          🔥 <strong>24,800+ Gen-Z</strong> aktif memilih produk halal transparan • 📦 <em>Rendang Suwir Padang</em> terjual 145 bungkus hari ini • 🚚 Truk cold chain <strong>B 9482 PXZ</strong> terpantau stabil di suhu -18.4°C!
+        <div className="truncate text-emerald-100 text-xs px-4">
+          Jaminan Kehalalan Terverifikasi: <strong>45.000+</strong> produk terdata resmi di SIHALAL BPJPH • 🚚 Pemantauan logistik umum & berpendingin aktif mengawal kebersihan wadah bebas kontaminasi.
         </div>
-        <button onClick={() => onNavigate('product-catalog')} className="hidden sm:inline text-[11px] text-emerald-300 hover:underline shrink-0">
-          Explore Produk &rarr;
+        <button onClick={() => onNavigate('verification')} className="hidden sm:inline text-xs text-emerald-300 font-bold hover:underline shrink-0">
+          Cek Dokumen &rarr;
         </button>
       </div>
 
-      {/* Hero: Gen-Z Aesthetic Banner */}
-      <div className="relative bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 py-16 px-6 text-center text-white overflow-hidden">
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/20 blur-3xl rounded-full pointer-events-none"></div>
-        <div className="absolute -bottom-12 right-12 w-64 h-64 bg-teal-500/20 blur-2xl rounded-full pointer-events-none"></div>
+      {/* Hero: Natural, Clear & Authoritative Halal Assurance Banner */}
+      <div className="relative bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 py-16 px-6 text-center text-white overflow-hidden">
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none"></div>
+        <div className="absolute -bottom-12 right-12 w-64 h-64 bg-teal-500/15 blur-2xl rounded-full pointer-events-none"></div>
         
         <div className="max-w-4xl mx-auto relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-emerald-300 border border-white/20">
-            <span>✨</span> GEN-Z HALAL LIFESTYLE • 100% TRANSPARAN
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1 rounded-full text-xs font-bold text-emerald-200 border border-white/20">
+            <span>🛡️</span> Sistem Jaminan Produk Halal (SJPH) Terintegrasi BPJPH Kemenag RI
           </div>
           
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-            Halo, Halal Explorer! 🚀 <br />
-            <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent">
-              Makan Enak, Belanja Tenang, 0% Was-was
+            Ekosistem Jaminan Halal Terpadu <br />
+            <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-200 bg-clip-text text-transparent">
+              Dari Sumber Bahan Hingga Meja Konsumen
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl mx-auto font-medium leading-relaxed">
-            Temukan produk viral pilihan dari UMKM & peternak nusantara dengan transparansi sertifikat BPJPH dan telemetri cold chain real-time.
+          <p className="text-xs sm:text-sm text-emerald-100/90 max-w-2xl mx-auto font-medium leading-relaxed">
+            Menghubungkan UMKM, produsen bahan baku, dan ekspedisi logistik dalam satu platform transparansi. Mengawal kepatuhan syariat, bebas najis, dan mencegah kontaminasi silang secara menyeluruh.
           </p>
 
           {/* Quick Entry Portals */}
-          <div className="flex flex-wrap gap-2.5 justify-center pt-2">
+          <div className="flex flex-wrap gap-2.5 justify-center pt-3">
             <button 
-              onClick={() => onSetRole('seller')} 
-              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-5 py-2.5 rounded-xl font-black text-xs transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer"
+              onClick={() => onNavigate('login-seller')} 
+              className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
-              <span>🛒</span> Masuk UMKM
+              <span>🏪</span> Masuk sebagai Penjual UMKM
             </button>
             <button 
-              onClick={() => onSetRole('distributor')} 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl font-black text-xs transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer"
+              onClick={() => onNavigate('login-distributor')} 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
-              <span>🚛</span> Masuk Distributor
+              <span>🚚</span> Masuk sebagai Distributor Logistik
             </button>
             <button 
-              onClick={() => onSetRole('customer')} 
-              className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2.5 rounded-xl font-black text-xs transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer"
+              onClick={() => onNavigate('login-customer')} 
+              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
-              <span>👤</span> Masuk Pembeli
+              <span>🛍️</span> Masuk sebagai Pembeli
             </button>
             <button 
               onClick={() => onNavigate('product-catalog')} 
-              className="bg-white/20 hover:bg-white/30 text-white px-5 py-2.5 rounded-xl font-bold text-xs border border-white/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bg-white/15 hover:bg-white/25 text-white px-5 py-2.5 rounded-xl font-bold text-xs border border-white/30 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span>🛍️</span> Explore Katalog
+              <span>📦</span> Jelajahi Katalog Terverifikasi
             </button>
           </div>
         </div>

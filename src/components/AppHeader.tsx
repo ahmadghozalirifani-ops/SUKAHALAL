@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import Logo from './Logo'
 import LanguageToggle from './LanguageToggle'
@@ -27,11 +27,24 @@ export default function AppHeader({
   breadcrumbs = [], 
   title,
   breadcrumb,
+  onSetRole = () => {},
   notifCount = 3,
   showBackButton = false,
   backPage = 'dashboard'
 }: Props) {
   const { t } = useTranslation()
+  const [showLoginDropdown, setShowLoginDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowLoginDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const effectiveBreadcrumbs: BreadcrumbItem[] = breadcrumbs.length > 0
     ? breadcrumbs
@@ -40,27 +53,27 @@ export default function AppHeader({
     : []
 
   const roleBadgeColor: Record<string, string> = {
-    seller: 'bg-green-100 text-green-800 border-green-200',
+    seller: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     distributor: 'bg-blue-100 text-blue-800 border-blue-200',
     customer: 'bg-purple-100 text-purple-800 border-purple-200',
-    guest: 'bg-gray-100 text-gray-700 border-gray-200',
+    guest: 'bg-slate-100 text-slate-700 border-slate-200',
   }
   const roleLabels: Record<string, string> = {
-    seller: '🛒 ' + t('roles.seller', 'Penjual'),
+    seller: '🛒 ' + t('roles.seller', 'Penjual UMKM'),
     distributor: '🚛 ' + t('roles.distributor', 'Distributor'),
     customer: '👤 ' + t('roles.customer', 'Konsumen'),
     guest: '🌐 ' + t('roles.guest', 'Tamu'),
   }
 
   const headerBg: Record<string, string> = {
-    seller: 'border-green-100',
+    seller: 'border-emerald-100',
     distributor: 'border-blue-100',
     customer: 'border-purple-100',
-    guest: 'border-gray-100',
+    guest: 'border-slate-100',
   }
 
   return (
-    <header className={`bg-white border-b ${headerBg[userRole] || 'border-gray-100'} sticky top-0 z-30 shadow-2xs`}>
+    <header className={`bg-white border-b ${headerBg[userRole] || 'border-slate-100'} sticky top-0 z-30 shadow-2xs`}>
       <div className="max-w-screen-xl mx-auto px-4 py-2.5">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Logo + Back button + Breadcrumb */}
@@ -68,7 +81,7 @@ export default function AppHeader({
             {showBackButton && (
               <button
                 onClick={() => onNavigate(backPage)}
-                className="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 text-xs font-bold transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 title="Kembali"
               >
                 ←
@@ -85,34 +98,34 @@ export default function AppHeader({
           </div>
 
           {/* Quick Header Jump Links */}
-          <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-gray-600">
+          <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-600">
             <button 
               onClick={() => onNavigate('product-catalog')} 
-              className="px-2.5 py-1.5 rounded-lg hover:bg-gray-100 hover:text-green-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
             >
-              📦 Produk
+              📦 Katalog Produk
             </button>
             <button 
               onClick={() => onNavigate('supplier-catalog')} 
-              className="px-2.5 py-1.5 rounded-lg hover:bg-gray-100 hover:text-green-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
             >
-              🏢 Supplier
+              🏢 Pemasok & Produsen
             </button>
             <button 
               onClick={() => onNavigate('supply-chain')} 
-              className="px-2.5 py-1.5 rounded-lg hover:bg-gray-100 hover:text-blue-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
             >
-              🚚 Rantai Pasok
+              🚚 Rantai Pasok Terpadu
             </button>
             <button 
               onClick={() => onNavigate('verification')} 
-              className="px-2.5 py-1.5 rounded-lg hover:bg-gray-100 hover:text-amber-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-colors"
             >
-              🛡️ Verifikasi
+              🛡️ Verifikasi SJPH
             </button>
           </div>
 
-          {/* Right: Actions */}
+          {/* Right: Actions & Tiered Login Dropdown */}
           <div className="flex items-center gap-2 shrink-0">
             <LanguageToggle />
             
@@ -120,14 +133,14 @@ export default function AppHeader({
               <>
                 <button
                   onClick={() => onNavigate('cart')}
-                  className="w-8 h-8 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-700 text-xs transition-colors"
+                  className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-700 text-xs transition-colors cursor-pointer"
                   title="Keranjang Belanja"
                 >
                   🛒
                 </button>
                 <button
                   onClick={() => onNavigate('notifikasi')}
-                  className="relative w-8 h-8 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors"
+                  className="relative w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
                   title="Notifikasi"
                 >
                   🔔
@@ -139,28 +152,133 @@ export default function AppHeader({
                 </button>
                 <button
                   onClick={() => onNavigate('settings')}
-                  className="w-8 h-8 rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors"
+                  className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
                   title="Pengaturan"
                 >
                   ⚙️
                 </button>
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className={`hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${
-                    roleBadgeColor[userRole] || roleBadgeColor.guest
-                  }`}
-                >
-                  {roleLabels[userRole] || roleLabels.guest}
-                </button>
+
+                {/* Role Status Badge with Switch Option */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowLoginDropdown(!showLoginDropdown)}
+                    className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                      roleBadgeColor[userRole] || roleBadgeColor.guest
+                    }`}
+                  >
+                    <span>{roleLabels[userRole] || roleLabels.guest}</span>
+                    <span className="text-[10px] opacity-60">▾</span>
+                  </button>
+
+                  {/* Dropdown for role switching / logout */}
+                  {showLoginDropdown && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in text-xs space-y-1">
+                      <div className="px-3 py-2 border-b border-slate-100">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Status Masuk</span>
+                        <strong className="text-slate-900 capitalize">{userRole}</strong>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          onNavigate('dashboard')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 font-bold text-slate-700 flex items-center gap-2"
+                      >
+                        <span>📊</span> Buka Dashboard
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onNavigate('logout')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-red-50 font-bold text-red-600 flex items-center gap-2"
+                      >
+                        <span>🚪</span> Keluar Akun
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              /* Tiered Login Dropdown for Guest */
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => onNavigate('login-seller')}
-                  className="px-3 py-1.5 bg-green-700 text-white text-xs font-semibold rounded-lg hover:bg-green-800 transition-colors"
+                  onClick={() => setShowLoginDropdown(!showLoginDropdown)}
+                  className="px-4 py-2 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-800 hover:to-teal-800 text-white text-xs font-black rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  Masuk Penjual
+                  <span>🔐</span>
+                  <span>Masuk Akun</span>
+                  <span className="text-[10px] ml-0.5">▾</span>
                 </button>
+
+                {/* Tiered Dropdown Menu */}
+                {showLoginDropdown && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-fade-in text-xs">
+                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Pilih Jenjang Akses</span>
+                      <p className="text-[11px] text-slate-500">Masuk sesuai peran operasional Anda:</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => {
+                          onNavigate('login-seller')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-900 transition-colors flex items-start gap-2.5"
+                      >
+                        <span className="text-lg bg-emerald-100 text-emerald-800 p-1.5 rounded-lg shrink-0">🏪</span>
+                        <div>
+                          <span className="font-bold text-xs block text-slate-900">Penjual & Produsen UMKM</span>
+                          <span className="text-[10px] text-slate-500 leading-tight block">Kelola produk, inventaris bahan baku & verifikasi SJPH</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onNavigate('login-distributor')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50 text-slate-800 hover:text-blue-900 transition-colors flex items-start gap-2.5"
+                      >
+                        <span className="text-lg bg-blue-100 text-blue-800 p-1.5 rounded-lg shrink-0">🚚</span>
+                        <div>
+                          <span className="font-bold text-xs block text-slate-900">Distributor & Ekspedisi</span>
+                          <span className="text-[10px] text-slate-500 leading-tight block">Armada logistik umum & cold-chain bersertifikat halal</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onNavigate('login-customer')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50 text-slate-800 hover:text-purple-900 transition-colors flex items-start gap-2.5"
+                      >
+                        <span className="text-lg bg-purple-100 text-purple-800 p-1.5 rounded-lg shrink-0">🛍️</span>
+                        <div>
+                          <span className="font-bold text-xs block text-slate-900">Konsumen & Pelanggan</span>
+                          <span className="text-[10px] text-slate-500 leading-tight block">Belanja produk terjamin halal dengan pelacakan QR batch</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div className="pt-2 mt-1 border-t border-slate-100 flex items-center justify-between px-2">
+                      <span className="text-[10px] text-slate-400">Belum punya akun?</span>
+                      <button
+                        onClick={() => {
+                          onNavigate('register')
+                          setShowLoginDropdown(false)
+                        }}
+                        className="text-xs font-black text-emerald-700 hover:underline"
+                      >
+                        Daftar Sekarang &rarr;
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
